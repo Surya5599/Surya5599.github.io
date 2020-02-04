@@ -1,19 +1,91 @@
-body {
-    font-family: helvetica;
+.container{
+	border-style: solid;
+	border-color: black;
+	border-width: 1px;
+	width: 1000px;
+	height: 1200px;
+	padding: 0 0 0 0;
+	text-align: center;
+	margin: auto;
 }
-ul {
-    font-family: monospace;
+.leftSide{
+	padding: 0 0 0 0;
+	margin: 0 0 0 0;
+	background-color: #181818;
+	color : white;
+	height: 1200px;
+	width: 490px;
+	text-align: left;
+	float: right;
 }
-li {
-  list-style: circle;
+.rightSide{
+	float: left;
+	height: 1200px;
+	width: 490px;
+	padding: 0 0 0 0;
+	margin: 0 0 0 10px;
 }
-
-.list {
-  list-style: square;
+.opening{
+	font-family: Cambria;
+	font-size : 17px;
+	text-align: left;
 }
-
-#date {
-  font-size: 12px;
-  font-style: italic;
-  font-weight: bold;
+.headings{
+	padding: 0 0 0 15px;
+	margin: 0 0 30px 0;
 }
+.info{
+	padding: 0 0 20px 15px;
+	margin: 0 0 0 0;
+	color: white;
+}
+.head{
+	text-align: left;
+	font-family: cambria;
+	font-weight: normal;
+}
+.lHeading{
+	text-align: left;
+	font-family: cambria;
+	font-weight: normal;
+}
+.left{
+	height: 100px;
+	width: 120px;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
+	float: left;
+	text-align: left;
+}
+.right{
+	height: 150px;
+	width: 350px;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
+	float: right;
+	text-align: left;
+}
+.leftExp{
+	height: 130px;
+	width: 100px;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
+	float: left;
+	text-align: left;
+}
+.rightExp{
+	height: 130px;
+	width: 350px;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
+	float: right;
+	text-align: left;
+}
+table {
+      border-collapse:collapse;
+      }
+td, th { 
+      padding: 3px; 
+      border-bottom: .01em solid black; 
+      text-align: left;
+      }
