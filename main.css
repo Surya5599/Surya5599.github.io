@@ -59,7 +59,7 @@
 }
 .right{
 	height: 150px;
-	width: 400px;
+	width: 350px;
 	margin: 0 0 0 0;
 	padding: 0 0 0 0;
 	float: right;
@@ -74,8 +74,8 @@
 	text-align: left;
 }
 .rightExp{
-	height: 130px;
-	width: 400px;
+	height: 150px;
+	width: 350px;
 	margin: 0 0 0 0;
 	padding: 0 0 0 0;
 	float: right;
