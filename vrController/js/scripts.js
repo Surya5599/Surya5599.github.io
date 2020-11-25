@@ -10,6 +10,9 @@ window.onload = (event) => {
       console.log("Angular velocity around the X-axis " + sensor.x);
       console.log("Angular velocity around the Y-axis " + sensor.y);
       console.log("Angular velocity around the Z-axis " + sensor.z);
+      x.innerHTML = sensor.x.toFixed(2);
+      y.innerHTML = sensor.y.toFixed(2);
+      z.innerHTML = sensor.z.toFixed(2);
   };
 
   sensor.onerror = event => console.log(event.error.name, event.error.message);
