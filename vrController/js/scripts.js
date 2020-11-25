@@ -8,9 +8,9 @@ window.onload = (event) => {
   sensor.start();
   
   sensor.onreading = () => {    
-    x.innerHTML = sensor.quaternion[0]
-    y.innerHTML = sensor.quaternion[1]
-    z.innerHTML = sensor.quaternion[2]
+    x.innerHTML = sensor.quaternion[0].toFixed(2)
+    y.innerHTML = sensor.quaternion[1].toFixed(2)
+    z.innerHTML = sensor.quaternion[2].toFixed(2)
     
   };
 
