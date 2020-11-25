@@ -8,7 +8,10 @@ window.onload = (event) => {
   sensor.start();
   
   sensor.onreading = () => {    
-    console.log(sensor.quaternion)
+    x.innerHTML = sensor.quaternion[0]
+    y.innerHTML = sensor.quaternion[1]
+    z.innerHTML = sensor.quaternion[2]
+    
   };
 
   sensor.onerror = event => console.log(event.error.name, event.error.message);
