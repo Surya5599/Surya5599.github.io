@@ -8,7 +8,7 @@ window.onload = (event) => {
   sensor.start();
   
   sensor.onreading = () => {    
-    sensor.onreading = () => model.quaternion.fromArray(sensor.quaternion);
+    console.log(sensor.quaternion)
   };
 
   sensor.onerror = event => console.log(event.error.name, event.error.message);
