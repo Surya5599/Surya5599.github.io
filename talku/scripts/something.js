@@ -12,7 +12,7 @@ ws.onopen = function() {
 
 };
 function beginChallenge() {
-
+    $('#beginButton').prop("disabled",true);
     var yourSelect = document.getElementById( "who" );
     var person =  yourSelect.options[ yourSelect.selectedIndex ].value;
     if(person == "Ashu"){
@@ -130,7 +130,14 @@ function finished() {
     x.innerHTML = "RUNNING....";
   } else {
     x.innerHTML = "DONE";
+    resetForm();
   }
+}
+
+function resetForm(){
+    $('form').get(0).reset(); 
+    $('#question').text(0);
+    $('#beginButton').prop("disabled",false);
 }
 
 ws.onclose = function() {
