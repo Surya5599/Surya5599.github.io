@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+
+    <script src="scripts/crypto-js.min.js"></script>
+    <script src="https://unpkg.com/mathjs/lib/browser/math.js"></script>
+    <script src="scripts/something.js"></script>
+    <title>TalkU Credit</title>
+
+</head>
+
+<body>
+  <form action="/action_page.php">
+    <label for="people">Choose a person:</label>
+    <select name="person" id="who">
+      <option value="Ashu">Ashu</option>
+      <option value="Alka">Alka</option>
+    </select>
+</form>
+    <div id="sse">
+        Type a Score<br>
+        <input type="text" id="myText" name="myText"><br><br>
+        <button onclick="beginChallenge()">Begin</button>
+        <br>
+        Number of questions done: <br>
+        <p id="question">0</p>
+        <p id="done">DONE</p>
+    </div>
+
+</body>
+
+</html>
