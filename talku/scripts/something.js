@@ -157,7 +157,7 @@ setInterval(function() {
 function getLeaderBoards(){
     var theUrl = "https://dt-apigatewayv2.dt-pn1.com/game/rank/list?appId=67&timeStamp=1629436329843";
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
     xmlHttp.send( null );
     var leaderBoards = JSON.parse(xmlHttp.responseText);
     var currLeader = leaderBoards.data[0];
@@ -169,14 +169,14 @@ function getLeaderBoards(){
 function getScores(){
     var theUrl = "https://dt-apigatewayv2.dt-pn1.com/game/challenge/info?uid=14513829137484867&nickname=Raven&timeStamp=1629437620104";
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
     xmlHttp.send( null );
     var leaderBoards = JSON.parse(xmlHttp.responseText);
     $('#alkaRank').text(leaderBoards.data.wordRank);
 
     var theUrl = "https://dt-apigatewayv2.dt-pn1.com/game/challenge/info?uid=14513822531255167&nickname=Elijah&timeStamp=1629437620104";
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
     xmlHttp.send( null );
     var leaderBoards = JSON.parse(xmlHttp.responseText);
     $('#ashuRank').text(leaderBoards.data.wordRank);
