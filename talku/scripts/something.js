@@ -6,24 +6,40 @@ var time = .1;
 var answerCorrect = 0;
 var maxScore = 1;
 
+
+
+
+
+var users = {
+    "Ashu": "14513822531255167",
+    "Alka": "14513829137484867"
+}
+var connected = false;
+
 getLeaderBoards();
 
     // Let us open a web socket
 var ws = new WebSocket('wss://d15wptekiod8mq.cloudfront.net/ws');
-ws.onopen = function() {
-    // Web Socket is connected, send data using send()
 
-};
+
+
+
+
+function establishConnection(){
+    ws.onopen = function() {
+        connected = true;
+    };
+}
+
+
 function beginChallenge() {
+    if(connected == false){
+        establishConnection();
+    }
+
     $('#beginButton').prop("disabled",true);
-    var yourSelect = document.getElementById( "who" );
-    var person =  yourSelect.options[ yourSelect.selectedIndex ].value;
-    if(person == "Ashu"){
-      UID = '14513822531255167';
-    }
-    else if(person == "Alka"){
-      UID = '14513829137484867'
-    }
+    var person = document.getElementById("who").value;
+    UID = users[person];
 
     currentQ = 0;
     time = .1;
@@ -146,6 +162,7 @@ function resetForm(){
 ws.onclose = function() {
     // websocket is closed.
     console.log('Connection is closed...')
+    connected = false;
 };
 
 
