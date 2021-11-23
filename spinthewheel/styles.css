@@ -2,6 +2,11 @@
 	box-sizing:border-box;
 }
 
+@media only screen and (max-width: 980px) {  
+	html, body {
+		display: none;
+	 }
+}
 
 body{
 	margin:0;
