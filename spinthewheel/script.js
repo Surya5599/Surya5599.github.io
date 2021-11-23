@@ -1,8 +1,17 @@
 let container = document.querySelector(".container");
 let btn = document.getElementById("spin");
 let number = Math.ceil(Math.random() * 1000);
+let previousNumber = 0;
 
-btn.onclick = function () {
+function spinthewheel() {
+	number = Math.ceil((Math.random() + 1000) * 10000);
+	while(true){
+		if(number % 360 < 20 && Math.abs(previousNumber - number) > 720){
+			break;
+		}
+		number = Math.ceil(Math.random() * 10000);
+	}
 	container.style.transform = "rotate(" + number + "deg)";
-	number += Math.ceil(Math.random() * 1000);
+	previousNumber = number;
+	//number += Math.ceil(Math.random() * 1000);
 }
