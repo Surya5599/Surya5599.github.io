@@ -23,6 +23,7 @@ body{
 	position: relative;
 	overflow: hidden;
 	transition: 5s;
+	transform: rotate(70deg);
 }
 
 .container div{
