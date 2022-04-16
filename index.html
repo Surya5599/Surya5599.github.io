@@ -1,92 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Knowhere Learning</title>
-	<script src="js/jquery.js"></script>
-	<link rel="stylesheet" href="css/bootstrap.css">
-	<script src="js/bootstrap.js"></script>
-	<link rel="stylesheet" href="css/stylesheet.css">
-	<script src="js/brain.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+  />
 </head>
 <body>
-	<nav class="navbar navbar-expand-lg navbar-light bg-light">
-		<a class="navbar-brand" href="#">KnowhereCode</a>
-		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-			<span class="navbar-toggler-icon"></span>
-		</button>
-	
-		<div class="collapse navbar-collapse" id="navbarSupportedContent">
-			<ul class="navbar-nav mr-auto">
-				<li class="nav-item active">
-					<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-				</li>
-				<!-- <li class="nav-item">
-					<a class="nav-link" href="#">Link</a>
-				</li>
-				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						Dropdown
-					</a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-						<a class="dropdown-item" href="#">Action</a>
-						<a class="dropdown-item" href="#">Another action</a>
-						<div class="dropdown-divider"></div>
-						<a class="dropdown-item" href="#">Something else here</a>
-					</div>
-				</li> -->
-				<!-- <li class="nav-item">
-					<a class="nav-link disabled" href="#">Disabled</a>
-				</li> -->
-			</ul>
-			<form class="form-inline my-2 my-lg-0">
-				<input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-				<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-			</form>
-		</div>
-	</nav>
-	<!-- <div class="fullscreen-bg">
-    <video loop muted autoplay poster="img/videoframe.jpg" class="fullscreen-bg__video">
-        <source src="videos\pendulum.mp4" type="video/mp4">
-    </video>
-</div> -->
-	<div class="container">
-		<div class="row">
-			<div class="col-md-6 offset-md-3">
-				<div class="card">
-					<div class="card-header bg-info">
-						Book an Appointment
-					</div>
-					<div class="card-body">
-						<form>
-							<div class="form-group">
-								<label for="exampleInputEmail1">Your name</label>
-								<input type="text" class="form-control" id="name" placeholder="Enter Name">
-							</div>
-							<div class="form-group">
-								<label for="">Appointment For</label>
-								<select class="form-control" name="" id="task">
-									<option>Coding</option>
-									<option >Debugging</option>
-									<option>Chilling</option>
-								</select>
-							</div>
-							<div class="form-group">
-								<label for="">Time</label>
-								<select class="form-control" name="" id="time">
-									<option>8pm</option>
-								</select>
-							</div>
-							<button type="button" class="btn btn-primary" onclick="success()">Submit</button>
-						</form>
-						<br>
-						<div class="alert alert-success" id="message" role="alert"></div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+    <h1> Wordle Clone </h1>
+    
+    <div id="game-board">
+
+    </div>
+
+    <div id="keyboard-cont">
+        <div class="first-row">
+            <button class="keyboard-button">q</button>
+            <button class="keyboard-button">w</button>
+            <button class="keyboard-button">e</button>
+            <button class="keyboard-button">r</button>
+            <button class="keyboard-button">t</button>
+            <button class="keyboard-button">y</button>
+            <button class="keyboard-button">u</button>
+            <button class="keyboard-button">i</button>
+            <button class="keyboard-button">o</button>
+            <button class="keyboard-button">p</button>
+        </div>
+        <div class="second-row">
+            <button class="keyboard-button">a</button>
+            <button class="keyboard-button">s</button>
+            <button class="keyboard-button">d</button>
+            <button class="keyboard-button">f</button>
+            <button class="keyboard-button">g</button>
+            <button class="keyboard-button">h</button>
+            <button class="keyboard-button">j</button>
+            <button class="keyboard-button">k</button>
+            <button class="keyboard-button">l</button>
+        </div>
+        <div class="third-row">
+            <button class="keyboard-button">Del</button>
+            <button class="keyboard-button">z</button>
+            <button class="keyboard-button">x</button>
+            <button class="keyboard-button">c</button>
+            <button class="keyboard-button">v</button>
+            <button class="keyboard-button">b</button>
+            <button class="keyboard-button">n</button>
+            <button class="keyboard-button">m</button>
+            <button class="keyboard-button">Enter</button>
+        </div>
+    </div>
+
+<script
+src="https://code.jquery.com/jquery-3.6.0.min.js"
+integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="script.js" type="module"></script>
 </body>
 </html>
