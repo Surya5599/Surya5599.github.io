@@ -11,19 +11,25 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f5f5;
+      background-color: #f2f2f2;
       color: #333;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 40px;
+    }
+
+    .repo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-gap: 20px;
     }
 
     .repo {
@@ -31,7 +37,6 @@
       border-radius: 5px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       padding: 20px;
-      margin-bottom: 20px;
     }
 
     .repo h2 {
@@ -61,7 +66,7 @@
 <body>
   <div class="container">
     <h1>My GitHub Repositories</h1>
-    <div id="repo-list"></div>
+    <div class="repo-grid" id="repo-list"></div>
   </div>
 
   <script>
