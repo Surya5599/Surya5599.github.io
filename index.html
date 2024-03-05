@@ -72,6 +72,17 @@
       z-index: 1;
     }
 
+    .repo-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .repo-content {
+      padding-top: 1rem;
+    }
+
     .repo h2 {
       margin-bottom: 0.5rem;
       z-index: 2;
@@ -148,6 +159,14 @@
           const repoElem = document.createElement('div');
           repoElem.classList.add('repo');
 
+          const repoImage = document.createElement('img');
+          repoImage.classList.add('repo-image');
+          repoImage.src = `https://source.unsplash.com/random/400x200?${repo.name}`;
+          repoImage.alt = `${repo.name} image`;
+
+          const repoContentDiv = document.createElement('div');
+          repoContentDiv.classList.add('repo-content');
+
           const repoName = document.createElement('h2');
           repoName.textContent = repo.name;
 
@@ -159,9 +178,12 @@
           repoUrl.textContent = 'View on GitHub';
           repoUrl.target = '_blank';
 
-          repoElem.appendChild(repoName);
-          repoElem.appendChild(repoDescription);
-          repoElem.appendChild(repoUrl);
+          repoContentDiv.appendChild(repoName);
+          repoContentDiv.appendChild(repoDescription);
+          repoContentDiv.appendChild(repoUrl);
+
+          repoElem.appendChild(repoImage);
+          repoElem.appendChild(repoContentDiv);
 
           repoList.appendChild(repoElem);
         });
