@@ -3,36 +3,74 @@
 <head>
   <title>My GitHub Portfolio</title>
   <style>
-    /* Add some basic styling */
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+    /* Reset some default styles */
+    body, h1, h2, p, ul {
+      margin: 0;
+      padding: 0;
     }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
     h1 {
       text-align: center;
+      margin-bottom: 20px;
     }
+
     .repo {
-      border: 1px solid #ccc;
-      padding: 10px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .repo h2 {
+      font-size: 20px;
       margin-bottom: 10px;
+    }
+
+    .repo p {
+      margin-bottom: 10px;
+    }
+
+    .repo a {
+      display: inline-block;
+      background-color: #007bff;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    .repo a:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
 <body>
-  <h1>My GitHub Repositories</h1>
-  <div id="repo-list"></div>
+  <div class="container">
+    <h1>My GitHub Repositories</h1>
+    <div id="repo-list"></div>
+  </div>
 
   <script>
-    // GitHub API endpoint to fetch your repositories
     const apiUrl = 'https://api.github.com/users/Surya5599/repos';
+    const repoList = document.getElementById('repo-list');
 
-    // Fetch repositories from GitHub API
     fetch(apiUrl)
       .then(response => response.json())
       .then(repos => {
-        const repoList = document.getElementById('repo-list');
-
-        // Loop through each repository and create an HTML element
         repos.forEach(repo => {
           const repoElem = document.createElement('div');
           repoElem.classList.add('repo');
@@ -41,11 +79,12 @@
           repoName.textContent = repo.name;
 
           const repoDescription = document.createElement('p');
-          repoDescription.textContent = repo.description;
+          repoDescription.textContent = repo.description || 'No description provided.';
 
           const repoUrl = document.createElement('a');
           repoUrl.href = repo.html_url;
           repoUrl.textContent = 'View on GitHub';
+          repoUrl.target = '_blank'; // Open the link in a new tab
 
           repoElem.appendChild(repoName);
           repoElem.appendChild(repoDescription);
