@@ -1,81 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surya Singh - Personal Page</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f7f7f7;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            padding: 30px 0;
-        }
-        header h1 {
-            font-size: 36px;
-            margin: 10px 0;
-        }
-        header p {
-            font-size: 18px;
-            margin: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
-        }
-        h2 {
-            color: #333;
-        }
-        p {
-            line-height: 1.6;
-        }
-        a {
-            color: #0077b5;
-            text-decoration: none;
-        }
-        .social-links {
-            margin-top: 20px;
-        }
-        .social-links a {
-            display: inline-block;
-            margin-right: 20px;
-            font-size: 24px;
-        }
-    </style>
+  <title>My GitHub Portfolio</title>
+  <style>
+    /* Add some basic styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .repo {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Surya Singh</h1>
-        <p>Fast Problem Solver | Critical Thinker | Generous Helper</p>
-    </header>
-    <div class="container">
-        <section>
-            <h2>About Me</h2>
-            <p>
-                I am a 24-year-old Senior Associate Software Engineer at Infosys, with a Bachelor's in Computer Science from UC Riverside. I am passionate about problem-solving and aspire to become a software engineer at a big tech company. People often describe me as a fast problem solver, critical thinker, and a generous helper.
-            </p>
-            <h2>Hobbies and Interests</h2>
-            <p>
-                I enjoy hanging out with friends, trying new foods, and creating quality of life scripts. Helping others is a core part of my life, both personally and professionally.
-            </p>
-            <h2>Contact Information</h2>
-            <p>
-                Email: <a href="mailto:ssurya5599@gmail.com">ssurya5599@gmail.com</a><br>
-                Phone: 626-554-1840<br>
-            </p>
-            <div class="social-links">
-                <a href="https://www.linkedin.com/in/surya-singh-411267173/" target="_blank">LinkedIn</a>
-            </div>
-        </section>
-    </div>
+  <h1>My GitHub Repositories</h1>
+  <div id="repo-list"></div>
+
+  <script>
+    // GitHub API endpoint to fetch your repositories
+    const apiUrl = 'https://api.github.com/users/Surya5599/repos';
+
+    // Fetch repositories from GitHub API
+    fetch(apiUrl)
+      .then(response => response.json())
+      .then(repos => {
+        const repoList = document.getElementById('repo-list');
+
+        // Loop through each repository and create an HTML element
+        repos.forEach(repo => {
+          const repoElem = document.createElement('div');
+          repoElem.classList.add('repo');
+
+          const repoName = document.createElement('h2');
+          repoName.textContent = repo.name;
+
+          const repoDescription = document.createElement('p');
+          repoDescription.textContent = repo.description;
+
+          const repoUrl = document.createElement('a');
+          repoUrl.href = repo.html_url;
+          repoUrl.textContent = 'View on GitHub';
+
+          repoElem.appendChild(repoName);
+          repoElem.appendChild(repoDescription);
+          repoElem.appendChild(repoUrl);
+
+          repoList.appendChild(repoElem);
+        });
+      })
+      .catch(error => console.error('Error:', error));
+  </script>
 </body>
 </html>
