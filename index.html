@@ -2,50 +2,67 @@
 <html>
 <head>
   <title>My GitHub Portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
-    /* Reset some default styles */
+    /* Reset styles */
     body, h1, h2, p, ul {
       margin: 0;
       padding: 0;
     }
 
+    /* Typography */
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f2f2f2;
+      font-family: 'Montserrat', sans-serif;
       color: #333;
     }
 
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    /* Layout */
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 20px;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 40px;
+      padding: 2rem;
     }
 
     .repo-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      grid-gap: 20px;
+      grid-gap: 2rem;
     }
 
+    /* Repo Card */
     .repo {
       background-color: #fff;
-      border-radius: 5px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    .repo:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .repo h2 {
-      font-size: 20px;
-      margin-bottom: 10px;
+      margin-bottom: 0.5rem;
     }
 
     .repo p {
-      margin-bottom: 10px;
+      margin-bottom: 1rem;
+      color: #666;
     }
 
     .repo a {
@@ -53,7 +70,7 @@
       background-color: #007bff;
       color: #fff;
       text-decoration: none;
-      padding: 8px 16px;
+      padding: 0.5rem 1rem;
       border-radius: 4px;
       transition: background-color 0.3s ease;
     }
@@ -61,11 +78,48 @@
     .repo a:hover {
       background-color: #0056b3;
     }
+
+    /* Animations */
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .repo {
+      animation: fadeIn 0.5s ease;
+    }
+
+    /* Parallax */
+    .parallax {
+      background-image: url('https://source.unsplash.com/random/1920x1080');
+      background-attachment: fixed;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      height: 500px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      text-align: center;
+    }
+
+    .parallax h2 {
+      font-size: 3rem;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
   </style>
 </head>
 <body>
+  <div class="parallax">
+    <h2>My GitHub Portfolio</h2>
+  </div>
   <div class="container">
-    <h1>My GitHub Repositories</h1>
     <div class="repo-grid" id="repo-list"></div>
   </div>
 
@@ -89,7 +143,7 @@
           const repoUrl = document.createElement('a');
           repoUrl.href = repo.html_url;
           repoUrl.textContent = 'View on GitHub';
-          repoUrl.target = '_blank'; // Open the link in a new tab
+          repoUrl.target = '_blank';
 
           repoElem.appendChild(repoName);
           repoElem.appendChild(repoDescription);
