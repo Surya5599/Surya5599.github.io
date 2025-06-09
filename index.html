@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
     /* Reset styles */
-    body, h1, h2, p, ul {
+    body, h1, h2, h3, p, ul, li { /* Added h3, li to reset */
       margin: 0;
       padding: 0;
     }
@@ -14,267 +14,497 @@
     /* Typography */
     body {
       font-family: 'Montserrat', sans-serif;
-      color: #333;
-      background-color: #f8f8f8;
-      background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"%3E%3Cpath fill="%239C92AC" fill-opacity="0.4" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"%3E%3C/path%3E%3C/svg%3E');
+      color: #333; /* Base text color */
+      background-color: #f4f6f8; /* Slightly softer background */
+      line-height: 1.6;
+      /* margin and padding are reset above */
     }
 
-    h1 {
-      font-size: 3.5rem;
+    h1 { /* This is the main page title in #main-content */
+      font-size: 2.8rem;
       font-weight: 700;
       text-align: center;
+      margin-top: 1rem; /* Add some top margin */
       margin-bottom: 2rem;
-      color: #6C63FF;
+      color: #2c3e50; /* Darker, more professional blue/grey */
     }
 
-    h2 {
-      font-size: 1.5rem;
+    /* General h2 for section titles within .container or #main-content */
+    .container > h2, #main-content > .container > h2 {
+      font-size: 1.8rem; /* Adjusted for hierarchy */
       font-weight: 600;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #34495e;
     }
 
     /* Layout */
-    .container {
-      max-width: 1200px;
+    .container { /* This class is used for featured projects and other repos containers */
+      max-width: 1200px; /* Max width for content sections */
+      margin: 0 auto 2rem auto; /* Centered with bottom margin */
+      padding: 0 1rem; /* Padding for smaller screens, overridden by #main-content padding-right */
+    }
+
+    /* Page Wrapper Layout */
+    #page-wrapper {
+      display: flex;
+      flex-wrap: wrap;
       margin: 0 auto;
-      padding: 2rem;
+      max-width: 1600px;
+      padding: 1rem; /* Padding around the whole page */
     }
 
-    .repo-grid {
+    #main-content {
+      flex: 3;
+      padding-right: 20px;
+      min-width: 300px;
+    }
+    #main-content > .container { /* Ensure containers within main-content don't add excessive side padding */
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+
+    #commit-calendar-sidebar {
+      flex: 1;
+      padding-left: 20px;
+      border-left: 1px solid #e0e0e0; /* Refined border */
+      min-width: 280px;
+      background-color: #fdfdfd; /* Light background for the sidebar */
+      padding-top: 1rem; /* Align content a bit */
+      padding-bottom: 1rem;
+      border-radius: 0 6px 6px 0; /* Rounded corners if on right */
+    }
+    #commit-calendar-sidebar h2 { /* "Recent Activity" title */
+      text-align: center;
+      font-size: 1.5rem; /* Good size for sidebar */
+      color: #34495e;
+      margin-bottom: 1.2rem;
+      font-weight: 600;
+    }
+
+    .repo-grid { /* For Featured Projects */
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-gap: 2rem;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsive cards */
+      grid-gap: 1.5rem; /* Spacing for featured cards */
     }
 
-    /* Repo Card */
-    .repo {
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    /* Featured Project Cards */
+    .featured-project-card {
+      background-color: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
       padding: 1.5rem;
+      text-align: center;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
-      position: relative;
-      overflow: hidden;
+      display: flex; /* For flex column layout */
+      flex-direction: column; /* Stack items vertically */
+      justify-content: space-between; /* Push content to top and bottom if needed */
     }
-
-    .repo:hover {
+    .featured-project-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
     }
-
-    .repo:hover::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.2);
-      z-index: 1;
-    }
-
-    .repo-image {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 8px 8px 0 0;
-    }
-
-    .repo-content {
-      padding-top: 1rem;
-    }
-
-    .repo h2 {
-      margin-bottom: 0.5rem;
-      z-index: 2;
-      position: relative;
-    }
-
-    .repo p {
+    .featured-project-card h3 { /* Project name */
+      font-size: 1.3rem;
+      color: #34495e;
       margin-bottom: 1rem;
-      color: #666;
-      z-index: 2;
-      position: relative;
+      font-weight: 600;
+    }
+    .project-svg-placeholder {
+      width: 100%;
+      height: 180px;
+      background-color: transparent;
+      border: none;
+      margin-top: 0.5rem;
+      border-radius: 4px;
+      overflow: hidden;
+      flex-grow: 1; /* Allow SVG placeholder to grow if card has extra space */
+      display: flex; /* Center SVG content if it's smaller */
+      align-items: center;
+      justify-content: center;
+    }
+    .project-svg-placeholder svg {
+        display: block;
+        max-width: 100%; /* Ensure SVG scales down */
+        max-height: 100%; /* Ensure SVG scales down */
     }
 
-    .repo a {
+    /* Project Details View */
+    .project-details-view {
+      padding: 25px;
+      background-color: #ffffff;
+      border-radius: 6px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      text-align: left;
+      animation: fadeInDetails 0.4s ease forwards; /* Slightly adjusted animation */
+    }
+    @keyframes fadeInDetails {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .project-details-view h2 { /* Title in details view */
+      color: #2c3e50;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    .project-details-view p {
+      margin-bottom: 0.8rem;
+      color: #555;
+    }
+    .project-details-view .btn { /* GitHub link button */
       display: inline-block;
       background-color: #6C63FF;
       color: #fff;
       text-decoration: none;
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.2rem;
       border-radius: 4px;
       transition: background-color 0.3s ease;
-      z-index: 2;
-      position: relative;
+      margin-right: 10px;
+      border: none; /* Explicitly no border */
+      font-size: 0.95rem;
     }
-
-    .repo a:hover {
+    .project-details-view .btn:hover {
       background-color: #5348d3;
     }
-
-    /* Animations */
-    @keyframes fadeIn {
-      0% {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .btn-back { /* Back button specific refinements */
+      background-color: #7f8c8d;
+      color: #fff; /* Ensure text is white */
+      padding: 0.6rem 1.2rem; /* Match other button */
+      border-radius: 4px; /* Match other button */
+      border: none; /* Explicitly no border */
+      font-size: 0.95rem; /* Match other button */
+      cursor: pointer; /* Ensure cursor changes */
+    }
+    .btn-back:hover {
+      background-color: #606c6d;
     }
 
-    .repo {
-      animation: fadeIn 0.5s ease;
-    }
 
-    /* Styles for enhanced repo card details */
-    .repo-content p { /* Target existing and new paragraphs for consistent spacing */
-      margin-bottom: 0.5rem; /* Adjust as needed */
-      font-size: 0.9rem; /* Slightly smaller text for details */
-    }
-    .repo-language, .repo-stars, .repo-forks {
-      color: #555; /* Darker grey for details */
-    }
-    .repo-stars i, .repo-forks i {
-      margin-right: 5px;
-      color: #6C63FF; /* Match link color or use a distinct icon color */
-    }
-
-    /* Styles for Recent Activity Section */
-    #recent-activity-container h2 {
-      font-size: 2.5rem;
-      font-weight: 700;
+    /* Other Repositories Section */
+    #other-repos-container h2 {
+      color: #7f8c8d;
+      font-size: 1.6rem;
+      font-weight: 600;
       text-align: center;
-      margin-top: 3rem; /* Space above the section */
-      margin-bottom: 1.5rem; /* Space below heading */
-      color: #6C63FF; /* Match main heading color */
+      margin-top: 3rem; /* Space above this section */
+      margin-bottom: 1.5rem;
     }
-
-    #commit-list {
-      max-width: 800px;
-      margin: 0 auto;
+    .repo-grid-other {
+      list-style-type: none;
       padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); /* Slightly smaller minmax */
+      grid-gap: 0.8rem;
     }
-
-    .commit-item {
-      background-color: #fff;
-      border: 1px solid #eee;
-      border-radius: 6px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    .other-repo-item {
+      background-color: #fdfdfd;
+      padding: 0.8rem 1rem;
+      border: 1px solid #f0f0f0;
+      border-radius: 5px; /* Consistent with other cards */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      text-align: center;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     }
-
-    .commit-item p {
-      margin-bottom: 0.5rem;
-      font-size: 0.95rem;
-      color: #333;
+     .other-repo-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.06);
     }
-
-    .commit-item p strong {
-      color: #111;
-    }
-
-    .commit-item a {
+    .other-repo-item a {
+      font-size: 0.9rem;
       color: #6C63FF;
       text-decoration: none;
+      font-weight: 500;
     }
-
-    .commit-item a:hover {
+    .other-repo-item a:hover {
       text-decoration: underline;
     }
 
+    /* Commit Calendar Display Styling */
+    #commit-calendar-display {
+      margin-top: 1rem;
+    }
+    .calendar-day {
+      border: 1px solid #e9e9e9;
+      background-color: #ffffff;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+    .calendar-day-date {
+      background-color: #f0f2f5;
+      padding: 6px 8px;
+      font-size: 0.85rem;
+      color: #34495e;
+      border-bottom: 1px solid #e9e9e9;
+      font-weight: 600; /* Make date a bit bolder */
+    }
+    .calendar-commit-item {
+      padding: 6px 8px 6px 12px; /* More left padding */
+      border-left: 3px solid #6C63FF;
+      font-size: 0.8rem;
+      background-color: #fff; /* Ensure item bg is white */
+    }
+    .calendar-commit-item:not(:last-child) {
+        border-bottom: 1px dashed #f0f0f0;
+    }
+    .calendar-commit-item a {
+      text-decoration: none;
+      color: #333; /* Darker text for commit message */
+    }
+    .calendar-commit-item a:hover {
+      text-decoration: underline;
+      color: #6C63FF; /* Accent on hover */
+    }
+    .calendar-commit-repo {
+      font-style: italic;
+      color: #777;
+      font-size: 0.75rem;
+    }
+
+    /* General .repo class cleanup if styles are handled by more specific classes now */
+    /* .repo class is still used as a common base for featured-project-card, so some defaults are fine. */
+    /* Remove any styles from .repo that are now conflicting or redundant. */
+    /* For example, if .repo h2 or .repo p are too general. */
+    /* The current structure seems to target h3 in .featured-project-card, which is more specific. */
+
+    /* Cleanup old recent activity styles if any remain (should be removed with HTML) */
+    /* #recent-activity-container, #commit-list, .commit-item are removed. */
+
     /* Responsive */
-    @media (max-width: 768px) {
-      #recent-activity-container h2 {
-        font-size: 2rem; /* Adjust H2 font size for smaller screens */
+    @media (max-width: 992px) {
+      #page-wrapper {
+        flex-direction: column;
+        padding: 0.5rem; /* Reduce page padding */
       }
-      .repo-grid {
-        grid-template-columns: repeat(2, 1fr);
+      #main-content {
+        padding-right: 0;
+        order: 2;
+      }
+      #commit-calendar-sidebar {
+        padding-left: 0;
+        padding-right: 0;
+        border-left: none;
+        border-top: 1px solid #e0e0e0;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        order: 1;
+        border-radius: 6px 6px 0 0;
+        width: 100%; /* Ensure it takes full width when stacked */
       }
     }
 
-    @media (max-width: 480px) {
-      .repo-grid {
-        grid-template-columns: 1fr;
+    @media (max-width: 768px) {
+      h1 { font-size: 2.2rem; } /* Adjust main title */
+      .repo-grid { /* For featured projects */
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* More responsive */
       }
+      .project-details-view h2 { font-size: 1.6rem; }
+      #other-repos-container h2 { font-size: 1.4rem; }
+      #commit-calendar-sidebar h2 { font-size: 1.3rem; }
+    }
+
+    @media (max-width: 480px) {
+      body { line-height: 1.5; }
+      h1 { font-size: 1.8rem; }
+      .repo-grid { /* For featured projects */
+        grid-template-columns: 1fr; /* Single column */
+      }
+      .repo-grid-other { /* For other repos */
+        grid-template-columns: 1fr; /* Single column */
+      }
+      .project-details-view { padding: 15px; }
+      .project-details-view .btn, .btn-back { padding: 0.5rem 1rem; font-size: 0.9rem; }
+      #commit-calendar-sidebar { padding-top: 1rem; margin-top: 1.5rem;}
     }
   </style>
 </head>
 <body>
-  <h1>My GitHub Portfolio</h1>
-  <div class="container">
-    <div class="repo-grid" id="repo-list"></div>
-  </div>
-
-  <div class="container" id="recent-activity-container">
-    <h2>Recent Activity</h2>
-    <div id="commit-list">
-      <!-- Commits will be dynamically inserted here -->
+  <div id="page-wrapper">
+    <div id="main-content">
+      <h1>My GitHub Portfolio</h1>
+      <div class="container"> <!-- Container for featured projects -->
+        <div class="repo-grid" id="repo-list"></div>
+      </div>
+      <div class="container" id="other-repos-container">
+        <h2>Other Repositories</h2>
+        <ul id="other-repos-list" class="repo-grid-other">
+          <!-- Other repositories will be listed here by JavaScript -->
+        </ul>
+      </div>
+    </div>
+    <div id="commit-calendar-sidebar">
+      <h2>Recent Activity</h2>
+      <div id="commit-calendar-display">
+        <!-- Calendar will be built here by JS -->
+      </div>
     </div>
   </div>
-
+  <!-- Removed old recent-activity-container -->
   <script>
+    // Global-like variables for state management
+    window.cachedFeaturedRepos = [];
+    window.originalFeaturedCardsHTML = '';
+
+    const placeholderSVGs = [
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;"><rect width="100" height="100" fill="#FFDDC1"/><circle cx="50" cy="50" r="30" fill="#FFABAB"/><rect x="20" y="20" width="60" height="60" fill="none" stroke="#FFABAB" stroke-width="5"/></svg>',
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;"><rect width="100" height="100" fill="#C1FFD7"/><path d="M0 0 L50 50 L0 100 Z" fill="#A0E7E5"/><path d="M100 0 L50 50 L100 100 Z" fill="#A0E7E5"/></svg>',
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;"><rect width="100" height="100" fill="#D1C1FF"/><line x1="10" y1="10" x2="90" y2="90" stroke="#B2A0E5" stroke-width="8"/><line x1="90" y1="10" x2="10" y2="90" stroke="#B2A0E5" stroke-width="8"/></svg>',
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;"><rect width="100" height="100" fill="#FFFDC1"/><ellipse cx="50" cy="50" rx="40" ry="20" fill="#E5B2A0"/></svg>',
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;"><rect width="100" height="100" fill="#C1F4FF"/><polygon points="50,10 90,90 10,90" fill="#A0D2E5"/></svg>'
+    ];
+
     const apiUrl = 'https://api.github.com/users/Surya5599/repos';
     const repoList = document.getElementById('repo-list');
     const eventsUrl = 'https://api.github.com/users/Surya5599/events';
-    const commitList = document.getElementById('commit-list');
+    const commitCalendarDisplay = document.getElementById('commit-calendar-display'); // Changed from commitList
+
+    function showProjectDetails(repo, listElement) {
+      listElement.innerHTML = ''; // Clear the list
+
+      const detailsContainer = document.createElement('div');
+      detailsContainer.classList.add('project-details-view');
+
+      const title = document.createElement('h2');
+      title.textContent = repo.name;
+
+      const description = document.createElement('p');
+      description.textContent = repo.description || 'No description available.';
+
+      const language = document.createElement('p');
+      language.textContent = 'Language: ' + (repo.language || 'N/A');
+
+      const stars = document.createElement('p');
+      stars.innerHTML = `<i class="fas fa-star"></i> Stars: ${repo.stargazers_count}`;
+
+      const forks = document.createElement('p');
+      forks.innerHTML = `<i class="fas fa-code-branch"></i> Forks: ${repo.forks_count}`;
+
+      const githubLink = document.createElement('a');
+      githubLink.href = repo.html_url;
+      githubLink.target = '_blank';
+      githubLink.textContent = 'View on GitHub';
+      githubLink.classList.add('btn'); // For styling as a button
+
+      const backButton = document.createElement('button');
+      backButton.textContent = '← Back to Projects';
+      backButton.classList.add('btn', 'btn-back');
+
+      backButton.addEventListener('click', () => {
+        listElement.innerHTML = window.originalFeaturedCardsHTML; // Restore original cards
+        // Re-attach event listeners to the restored cards
+        listElement.querySelectorAll('.featured-project-card').forEach((cardElement, index) => {
+          const repoData = window.cachedFeaturedRepos[index];
+          if (repoData) {
+            cardElement.addEventListener('click', () => {
+              showProjectDetails(repoData, listElement);
+            });
+          }
+        });
+      });
+
+      detailsContainer.appendChild(title);
+      detailsContainer.appendChild(description);
+      detailsContainer.appendChild(language);
+      detailsContainer.appendChild(stars);
+      detailsContainer.appendChild(forks);
+      detailsContainer.appendChild(githubLink);
+      detailsContainer.appendChild(backButton); // Add back button to details view
+      listElement.appendChild(detailsContainer);
+    }
 
     // Fetch repositories
     fetch(apiUrl)
       .then(response => response.json())
       .then(repos => {
+        repoList.innerHTML = ''; // Clear existing repo list content
+
+        const reposByLanguage = {};
         repos.forEach(repo => {
-          const repoElem = document.createElement('div');
-          repoElem.classList.add('repo');
-
-          const repoImage = document.createElement('img');
-          repoImage.classList.add('repo-image');
-          repoImage.src = `https://source.unsplash.com/random/400x200?${repo.name}`;
-          repoImage.alt = `${repo.name} image`;
-
-          const repoContentDiv = document.createElement('div');
-          repoContentDiv.classList.add('repo-content');
-
-          const repoName = document.createElement('h2');
-          repoName.textContent = repo.name;
-
-          const repoDescription = document.createElement('p');
-          repoDescription.textContent = repo.description || 'No description provided.';
-
-          const repoLang = document.createElement('p');
-          repoLang.classList.add('repo-language');
-          repoLang.innerHTML = 'Language: <span class="lang-text"></span>';
-          repoLang.querySelector('.lang-text').textContent = repo.language || 'N/A';
-
-          const repoStars = document.createElement('p');
-          repoStars.classList.add('repo-stars');
-          repoStars.innerHTML = '<i class="fas fa-star"></i> Stars: <span class="stars-count"></span>';
-          repoStars.querySelector('.stars-count').textContent = repo.stargazers_count;
-
-          const repoForks = document.createElement('p');
-          repoForks.classList.add('repo-forks');
-          repoForks.innerHTML = '<i class="fas fa-code-branch"></i> Forks: <span class="forks-count"></span>';
-          repoForks.querySelector('.forks-count').textContent = repo.forks_count;
-
-          const repoUrl = document.createElement('a');
-          repoUrl.href = repo.html_url;
-          repoUrl.textContent = 'View on GitHub';
-          repoUrl.target = '_blank';
-
-          repoContentDiv.appendChild(repoName);
-          repoContentDiv.appendChild(repoDescription);
-          repoContentDiv.appendChild(repoLang);
-          repoContentDiv.appendChild(repoStars);
-          repoContentDiv.appendChild(repoForks);
-          repoContentDiv.appendChild(repoUrl);
-
-          repoElem.appendChild(repoImage);
-          repoElem.appendChild(repoContentDiv);
-
-          repoList.appendChild(repoElem);
+          if (repo.language) {
+            if (!reposByLanguage[repo.language]) {
+              reposByLanguage[repo.language] = [];
+            }
+            reposByLanguage[repo.language].push(repo);
+          }
         });
+
+        const localFeaturedRepos = []; // Use a local variable here
+        for (const lang in reposByLanguage) {
+          const langRepos = reposByLanguage[lang];
+          if (langRepos.length > 0) {
+            langRepos.sort((a, b) => {
+              if (b.stargazers_count === a.stargazers_count) {
+                return new Date(b.updated_at) - new Date(a.updated_at);
+              }
+              return b.stargazers_count - a.stargazers_count;
+            });
+            localFeaturedRepos.push(langRepos[0]);
+          }
+        }
+        window.cachedFeaturedRepos = localFeaturedRepos; // Cache for later use
+
+        console.log('Featured Repos:', window.cachedFeaturedRepos);
+
+        window.cachedFeaturedRepos.forEach(repo => {
+          const card = document.createElement('div');
+          card.classList.add('featured-project-card');
+          card.classList.add('repo');
+
+          const repoNameElement = document.createElement('h3');
+          repoNameElement.textContent = repo.name;
+
+          const svgPlaceholder = document.createElement('div');
+          svgPlaceholder.classList.add('project-svg-placeholder');
+
+          const randomSVG = placeholderSVGs[Math.floor(Math.random() * placeholderSVGs.length)];
+          svgPlaceholder.innerHTML = randomSVG;
+
+          card.appendChild(repoNameElement);
+          card.appendChild(svgPlaceholder);
+          repoList.appendChild(card);
+        });
+
+        // Capture HTML after all initial cards are rendered
+        window.originalFeaturedCardsHTML = repoList.innerHTML;
+
+        // Attach initial event listeners AFTER capturing HTML
+        repoList.querySelectorAll('.featured-project-card').forEach((cardElement, index) => {
+          const repoData = window.cachedFeaturedRepos[index];
+          if (repoData) {
+            cardElement.addEventListener('click', () => {
+              showProjectDetails(repoData, repoList);
+            });
+          }
+        });
+
+        // Logic for "Other Repositories"
+        const featuredRepoNames = new Set(window.cachedFeaturedRepos.map(fr => fr.name));
+        const otherRepos = repos.filter(repo => !featuredRepoNames.has(repo.name));
+
+        const otherReposList = document.getElementById('other-repos-list');
+        otherReposList.innerHTML = ''; // Clear if potentially run multiple times
+
+        if (otherRepos.length > 0) {
+          otherRepos.forEach(repo => {
+            const listItem = document.createElement('li');
+            listItem.classList.add('other-repo-item');
+
+            const link = document.createElement('a');
+            link.href = repo.html_url;
+            link.target = '_blank';
+            link.textContent = repo.name + (repo.language ? ` (${repo.language})` : '');
+
+            listItem.appendChild(link);
+            otherReposList.appendChild(listItem);
+          });
+        } else {
+          // Optional: Display a message if no other repos
+          const messageItem = document.createElement('li');
+          messageItem.textContent = 'No other repositories to display.';
+          otherReposList.appendChild(messageItem);
+        }
       })
       .catch(error => console.error('Error fetching repos:', error));
 
@@ -282,78 +512,90 @@
     fetch(eventsUrl)
       .then(response => response.json())
       .then(events => {
-        const MAX_COMMITS = 5;
-        let displayedCommits = 0;
-        commitList.innerHTML = ''; // Clear previous content / placeholder
+        const MAX_UNIQUE_COMMITS_FOR_CALENDAR = 15;
+        commitCalendarDisplay.innerHTML = '';
 
         const pushEvents = events.filter(event => event.type === 'PushEvent');
-        let allCommits = [];
+        let allCommitsFromEvents = [];
         pushEvents.forEach(event => {
           if (event.payload && event.payload.commits) {
             event.payload.commits.forEach(commit => {
-              allCommits.push({
+              allCommitsFromEvents.push({
                 message: commit.message,
                 repoName: event.repo.name,
                 sha: commit.sha,
-                // Ensure date parsing is robust; GitHub event timestamps are usually reliable
-                date: new Date(event.created_at), // Using event.created_at for more consistent time
+                date: new Date(event.created_at),
                 url: `https://github.com/${event.repo.name}/commit/${commit.sha}`
               });
             });
           }
         });
 
-        // Sort by date descending
-        allCommits.sort((a, b) => b.date - a.date);
+        allCommitsFromEvents.sort((a, b) => b.date - a.date);
 
-        // Get unique commits by SHA, then take the top MAX_COMMITS
-        const uniqueCommits = [];
+        const uniqueCommitsToDisplay = [];
         const seenShas = new Set();
-        for (const commit of allCommits) {
+        for (const commit of allCommitsFromEvents) {
           if (!seenShas.has(commit.sha)) {
-            uniqueCommits.push(commit);
+            uniqueCommitsToDisplay.push(commit);
             seenShas.add(commit.sha);
           }
-          if (uniqueCommits.length >= MAX_COMMITS) {
+          if (uniqueCommitsToDisplay.length >= MAX_UNIQUE_COMMITS_FOR_CALENDAR) {
             break;
           }
         }
 
-        if (uniqueCommits.length === 0) {
-          commitList.innerHTML = '<p>No recent push events with commits found.</p>';
-        } else {
-          uniqueCommits.forEach(commit => {
-            const commitElem = document.createElement('div');
-            commitElem.classList.add('commit-item'); // Add a class for styling
+        if (uniqueCommitsToDisplay.length === 0) {
+          commitCalendarDisplay.innerHTML = '<p>No recent commit activity to display.</p>';
+          return;
+        }
 
-            const commitMessage = document.createElement('p');
-            // Display only the first line of the commit message
-            commitMessage.innerHTML = `<strong>Message:</strong> ${commit.message.split('\n')[0]}`;
+        const commitsByDate = {};
+        uniqueCommitsToDisplay.forEach(commit => {
+          const dateStr = commit.date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+          if (!commitsByDate[dateStr]) {
+            commitsByDate[dateStr] = [];
+          }
+          commitsByDate[dateStr].push(commit);
+        });
 
-            const commitRepo = document.createElement('p');
-            commitRepo.innerHTML = `<strong>Repo:</strong> <a href="https://github.com/${commit.repoName}" target="_blank">${commit.repoName}</a>`;
+        const sortedDates = Object.keys(commitsByDate).sort((a,b) => new Date(b) - new Date(a));
+
+        sortedDates.forEach(dateStr => {
+          const dayDiv = document.createElement('div');
+          dayDiv.classList.add('calendar-day');
+
+          const dateP = document.createElement('p');
+          dateP.classList.add('calendar-day-date');
+          dateP.textContent = dateStr;
+          dayDiv.appendChild(dateP);
+
+          commitsByDate[dateStr].forEach(commit => {
+            const commitDiv = document.createElement('div');
+            commitDiv.classList.add('calendar-commit-item');
 
             const commitLink = document.createElement('a');
             commitLink.href = commit.url;
             commitLink.target = '_blank';
-            // Display short SHA
-            commitLink.textContent = `View Commit (${commit.sha.substring(0, 7)})`;
+            let message = commit.message.split('\n')[0];
+            if (message.length > 50) message = message.substring(0, 47) + '...';
+            commitLink.textContent = message;
 
-            const commitDate = document.createElement('p');
-            // Format date for better readability
-            commitDate.textContent = `Date: ${commit.date.toLocaleDateString()} ${commit.date.toLocaleTimeString()}`;
+            const repoSpan = document.createElement('span');
+            repoSpan.classList.add('calendar-commit-repo');
+            // Display only repo name part e.g. 'my-repo' from 'Surya5599/my-repo'
+            repoSpan.textContent = ` (${commit.repoName.split('/')[1] || commit.repoName})`;
 
-            commitElem.appendChild(commitMessage);
-            commitElem.appendChild(commitRepo);
-            commitElem.appendChild(commitDate); // Date before link for better flow
-            commitElem.appendChild(commitLink);
-            commitList.appendChild(commitElem);
+            commitDiv.appendChild(commitLink);
+            commitDiv.appendChild(repoSpan);
+            dayDiv.appendChild(commitDiv);
           });
-        }
+          commitCalendarDisplay.appendChild(dayDiv);
+        });
       })
       .catch(error => {
         console.error('Error fetching events:', error);
-        commitList.innerHTML = '<p>Could not load recent activity.</p>';
+        commitCalendarDisplay.innerHTML = '<p>Could not load recent activity.</p>';
       });
   </script>
 </body>
