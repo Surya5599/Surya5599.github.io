@@ -128,8 +128,68 @@
       animation: fadeIn 0.5s ease;
     }
 
+    /* Styles for enhanced repo card details */
+    .repo-content p { /* Target existing and new paragraphs for consistent spacing */
+      margin-bottom: 0.5rem; /* Adjust as needed */
+      font-size: 0.9rem; /* Slightly smaller text for details */
+    }
+    .repo-language, .repo-stars, .repo-forks {
+      color: #555; /* Darker grey for details */
+    }
+    .repo-stars i, .repo-forks i {
+      margin-right: 5px;
+      color: #6C63FF; /* Match link color or use a distinct icon color */
+    }
+
+    /* Styles for Recent Activity Section */
+    #recent-activity-container h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 3rem; /* Space above the section */
+      margin-bottom: 1.5rem; /* Space below heading */
+      color: #6C63FF; /* Match main heading color */
+    }
+
+    #commit-list {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    .commit-item {
+      background-color: #fff;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .commit-item p {
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      color: #333;
+    }
+
+    .commit-item p strong {
+      color: #111;
+    }
+
+    .commit-item a {
+      color: #6C63FF;
+      text-decoration: none;
+    }
+
+    .commit-item a:hover {
+      text-decoration: underline;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
+      #recent-activity-container h2 {
+        font-size: 2rem; /* Adjust H2 font size for smaller screens */
+      }
       .repo-grid {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -148,10 +208,20 @@
     <div class="repo-grid" id="repo-list"></div>
   </div>
 
+  <div class="container" id="recent-activity-container">
+    <h2>Recent Activity</h2>
+    <div id="commit-list">
+      <!-- Commits will be dynamically inserted here -->
+    </div>
+  </div>
+
   <script>
     const apiUrl = 'https://api.github.com/users/Surya5599/repos';
     const repoList = document.getElementById('repo-list');
+    const eventsUrl = 'https://api.github.com/users/Surya5599/events';
+    const commitList = document.getElementById('commit-list');
 
+    // Fetch repositories
     fetch(apiUrl)
       .then(response => response.json())
       .then(repos => {
@@ -173,6 +243,21 @@
           const repoDescription = document.createElement('p');
           repoDescription.textContent = repo.description || 'No description provided.';
 
+          const repoLang = document.createElement('p');
+          repoLang.classList.add('repo-language');
+          repoLang.innerHTML = 'Language: <span class="lang-text"></span>';
+          repoLang.querySelector('.lang-text').textContent = repo.language || 'N/A';
+
+          const repoStars = document.createElement('p');
+          repoStars.classList.add('repo-stars');
+          repoStars.innerHTML = '<i class="fas fa-star"></i> Stars: <span class="stars-count"></span>';
+          repoStars.querySelector('.stars-count').textContent = repo.stargazers_count;
+
+          const repoForks = document.createElement('p');
+          repoForks.classList.add('repo-forks');
+          repoForks.innerHTML = '<i class="fas fa-code-branch"></i> Forks: <span class="forks-count"></span>';
+          repoForks.querySelector('.forks-count').textContent = repo.forks_count;
+
           const repoUrl = document.createElement('a');
           repoUrl.href = repo.html_url;
           repoUrl.textContent = 'View on GitHub';
@@ -180,6 +265,9 @@
 
           repoContentDiv.appendChild(repoName);
           repoContentDiv.appendChild(repoDescription);
+          repoContentDiv.appendChild(repoLang);
+          repoContentDiv.appendChild(repoStars);
+          repoContentDiv.appendChild(repoForks);
           repoContentDiv.appendChild(repoUrl);
 
           repoElem.appendChild(repoImage);
@@ -188,7 +276,85 @@
           repoList.appendChild(repoElem);
         });
       })
-      .catch(error => console.error('Error:', error));
+      .catch(error => console.error('Error fetching repos:', error));
+
+    // Fetch recent activity (commits)
+    fetch(eventsUrl)
+      .then(response => response.json())
+      .then(events => {
+        const MAX_COMMITS = 5;
+        let displayedCommits = 0;
+        commitList.innerHTML = ''; // Clear previous content / placeholder
+
+        const pushEvents = events.filter(event => event.type === 'PushEvent');
+        let allCommits = [];
+        pushEvents.forEach(event => {
+          if (event.payload && event.payload.commits) {
+            event.payload.commits.forEach(commit => {
+              allCommits.push({
+                message: commit.message,
+                repoName: event.repo.name,
+                sha: commit.sha,
+                // Ensure date parsing is robust; GitHub event timestamps are usually reliable
+                date: new Date(event.created_at), // Using event.created_at for more consistent time
+                url: `https://github.com/${event.repo.name}/commit/${commit.sha}`
+              });
+            });
+          }
+        });
+
+        // Sort by date descending
+        allCommits.sort((a, b) => b.date - a.date);
+
+        // Get unique commits by SHA, then take the top MAX_COMMITS
+        const uniqueCommits = [];
+        const seenShas = new Set();
+        for (const commit of allCommits) {
+          if (!seenShas.has(commit.sha)) {
+            uniqueCommits.push(commit);
+            seenShas.add(commit.sha);
+          }
+          if (uniqueCommits.length >= MAX_COMMITS) {
+            break;
+          }
+        }
+
+        if (uniqueCommits.length === 0) {
+          commitList.innerHTML = '<p>No recent push events with commits found.</p>';
+        } else {
+          uniqueCommits.forEach(commit => {
+            const commitElem = document.createElement('div');
+            commitElem.classList.add('commit-item'); // Add a class for styling
+
+            const commitMessage = document.createElement('p');
+            // Display only the first line of the commit message
+            commitMessage.innerHTML = `<strong>Message:</strong> ${commit.message.split('\n')[0]}`;
+
+            const commitRepo = document.createElement('p');
+            commitRepo.innerHTML = `<strong>Repo:</strong> <a href="https://github.com/${commit.repoName}" target="_blank">${commit.repoName}</a>`;
+
+            const commitLink = document.createElement('a');
+            commitLink.href = commit.url;
+            commitLink.target = '_blank';
+            // Display short SHA
+            commitLink.textContent = `View Commit (${commit.sha.substring(0, 7)})`;
+
+            const commitDate = document.createElement('p');
+            // Format date for better readability
+            commitDate.textContent = `Date: ${commit.date.toLocaleDateString()} ${commit.date.toLocaleTimeString()}`;
+
+            commitElem.appendChild(commitMessage);
+            commitElem.appendChild(commitRepo);
+            commitElem.appendChild(commitDate); // Date before link for better flow
+            commitElem.appendChild(commitLink);
+            commitList.appendChild(commitElem);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching events:', error);
+        commitList.innerHTML = '<p>Could not load recent activity.</p>';
+      });
   </script>
 </body>
 </html>
