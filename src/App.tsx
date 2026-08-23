@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { profile, skills, type Skill } from "./data/profile";
 import Chat from "./Chat";
+import SimModal from "./SimModal";
+import { SIMS } from "./sims";
 
 function useTypewriter(text: string, speed = 28) {
   const [shown, setShown] = useState(0);
@@ -25,6 +27,8 @@ const STATUS_STYLE: Record<Skill["status"], string> = {
 
 function SkillCard({ skill }: { skill: Skill }) {
   const [open, setOpen] = useState(false);
+  const [simOpen, setSimOpen] = useState(false);
+  const sim = SIMS[skill.slug];
   return (
     <article className="border border-hairline bg-linen flex flex-col">
       <header className="flex items-center justify-between gap-2 border-b border-hairline px-4 py-2 font-mono text-xs text-faded">
@@ -55,6 +59,14 @@ function SkillCard({ skill }: { skill: Skill }) {
           >
             {open ? "▾ collapse" : "▸ expand"}
           </button>
+          {sim && (
+            <button
+              onClick={() => setSimOpen(true)}
+              className="text-clay cursor-pointer hover:text-clay-deep"
+            >
+              ▶ run simulation
+            </button>
+          )}
           {skill.repo && (
             <a
               href={skill.repo}
@@ -67,6 +79,11 @@ function SkillCard({ skill }: { skill: Skill }) {
           )}
         </div>
         {open && <p className="mt-3 text-sm leading-relaxed text-ink/85">{skill.detail}</p>}
+        {sim && simOpen && (
+          <SimModal title={sim.title} onClose={() => setSimOpen(false)}>
+            <sim.component />
+          </SimModal>
+        )}
       </div>
     </article>
   );
