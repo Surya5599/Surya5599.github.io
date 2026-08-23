@@ -44,7 +44,7 @@ export default function RShellSim() {
   }
 
   return (
-    <div className="flex h-full flex-col font-mono text-[13px] leading-relaxed">
+    <div className="flex min-h-0 flex-1 flex-col font-mono text-[13px] leading-relaxed">
       <div className="flex flex-wrap items-center gap-2 border-b border-pane-edge px-4 py-2">
         {EXAMPLES.map((ex) => (
           <button

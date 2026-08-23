@@ -1,15 +1,24 @@
 import type { Handler } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
-import { profile, skills } from "../../src/data/profile";
+import { profile, skills, experience, toolbox, education } from "../../src/data/profile";
 
-const SYSTEM_PROMPT = `You are the portfolio agent for ${profile.name}, a ${profile.role}.
+const SYSTEM_PROMPT = `You are the portfolio agent for ${profile.name}, a ${profile.role} in ${profile.location}.
 Answer visitors' questions about Surya's work, skills, and experience — concisely (2-5 sentences), in a friendly, plain voice. Speak about Surya in the third person.
-Only discuss Surya and his work. If asked about anything unrelated, briefly redirect to his projects.
-GitHub: ${profile.github}. Contact: ${profile.email}.
+Only discuss Surya and his work. If asked about anything unrelated, briefly redirect to his projects. Never invent facts beyond this context; if you don't know, say so and point to ${profile.email}.
+GitHub: ${profile.github}. Contact: ${profile.email}. Education: ${education}.
 
 About: ${profile.about.join(" ")}
 
-Projects:
+Experience:
+${experience
+  .map((j) => `${j.role} @ ${j.company} (${j.period}):\n${j.bullets.map((b) => `  - ${b}`).join("\n")}`)
+  .join("\n")}
+
+Toolbox: ${Object.entries(toolbox)
+  .map(([g, items]) => `${g}: ${items.join(", ")}`)
+  .join(" | ")}
+
+Personal projects:
 ${skills
   .map(
     (s) =>

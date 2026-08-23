@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { profile, skills, type Skill } from "./data/profile";
+import { profile, skills, experience, toolbox, education, type Skill } from "./data/profile";
 import Chat from "./Chat";
 import SimModal from "./SimModal";
 import { SIMS } from "./sims";
@@ -124,7 +124,8 @@ export default function App() {
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/85">{profile.tagline}</p>
             <p className="mt-4 font-mono text-xs text-faded">
-              ✓ loaded in 0.3s · currently shipping{" "}
+              ✓ data engineer · {profile.location} · building agentic AI workflows at Oliver Wight
+              · shipping{" "}
               <a href="#skills" className="text-clay-deep underline underline-offset-4">
                 HabiCard
               </a>{" "}
@@ -146,6 +147,43 @@ export default function App() {
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
           {skills.map((s) => (
             <SkillCard key={s.slug} skill={s} />
+          ))}
+        </div>
+      </section>
+
+      {/* experience: the session history */}
+      <section id="experience" className="py-10">
+        <div className="flex items-baseline justify-between border-b border-hairline pb-3">
+          <h2 className="font-display text-4xl">Experience</h2>
+          <span className="font-mono text-xs text-faded">session history · 4+ yrs</span>
+        </div>
+        <div className="mt-8 space-y-8">
+          {experience.map((job) => (
+            <article key={job.company + job.period} className="sm:grid sm:grid-cols-[200px_1fr] sm:gap-8">
+              <header className="font-mono text-xs text-faded">
+                <p className="text-ink">
+                  ▸ {job.company.toLowerCase().replace(/\s+/g, "-")}/{job.role.toLowerCase().replace(/\s+/g, "-")}
+                </p>
+                <p className="mt-1">{job.period}</p>
+              </header>
+              <ul className="mt-3 space-y-2 sm:mt-0">
+                {job.bullets.map((b) => (
+                  <li key={b.slice(0, 32)} className="flex gap-3 text-[15px] leading-relaxed text-ink/85">
+                    <span className="text-clay" aria-hidden>–</span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+          <p className="font-mono text-xs text-faded">{education.toLowerCase()}</p>
+        </div>
+        <div className="mt-10 space-y-2 border-t border-hairline pt-6">
+          {Object.entries(toolbox).map(([group, items]) => (
+            <p key={group} className="font-mono text-xs leading-relaxed">
+              <span className="text-faded">{group}:</span>{" "}
+              <span className="text-clay-deep">[{items.join(", ")}]</span>
+            </p>
           ))}
         </div>
       </section>

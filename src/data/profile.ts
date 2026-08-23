@@ -14,16 +14,69 @@ export type Skill = {
 
 export const profile = {
   name: "Surya Singh",
-  role: "Software Engineer",
+  role: "Data Engineer",
+  location: "Los Angeles, CA",
   tagline:
-    "I build consumer products end to end — mobile apps, web dashboards, browser extensions — and I'm comfortable all the way down to the shell, the compiler, and the microcontroller.",
+    "Data engineer with 4+ years across ETL, data architecture, and BI — now building the agentic layer on top: Claude agents and skills, LangChain pipelines, and AI workflows that turn weeks of data onboarding into days.",
   github: "https://github.com/Surya5599",
-  email: "s@universalshelter.org",
+  email: "surya.singhp59@gmail.com",
   about: [
-    "Most of my current work is shipping two products: HabiCard, a habit tracker that lives across web, a Chrome extension, and iOS; and GymShot, a daily progress-photo app built around small accountability pods.",
-    "Before that: a Unix shell in C++, an Etch-a-Sketch on an AVR microcontroller, compilers coursework, and data analysis with scikit-learn. I like owning the whole stack — design, client, API, database, and store submission.",
+    "At Oliver Wight I build agentic data tooling: Claude-based skills that let business advisors query client data directly, an agent pipeline that categorizes incoming client data, runs the ETL, and flags quality issues with human-in-the-loop review (client onboarding went from weeks to days), and a LangChain + AgentScope help bot with persistent cross-session memory.",
+    "Before that, three years at Infosys: Spotfire dashboards over SQL/Oracle/Redshift serving 10,000+ daily users, 500+ reports migrated off legacy systems with Python and REST automation, and two Rising Star awards along the way.",
+    "Nights and weekends I ship consumer products end to end — HabiCard (web, Chrome extension, iOS) and GymShot (React Native) — and I'm comfortable all the way down to the shell, the compiler, and the microcontroller.",
   ],
 };
+
+export type Job = {
+  company: string;
+  role: string;
+  period: string;
+  bullets: string[];
+};
+
+export const experience: Job[] = [
+  {
+    company: "Oliver Wight",
+    role: "Data Engineer",
+    period: "dec 2024 – present",
+    bullets: [
+      "Claude-based AI skills that let business advisors query and interpret client data directly, reducing reliance on manual analyst support.",
+      "Claude agent/skills pipeline that categorizes incoming client data, runs the ETL to populate the product's data model, and flags quality issues through human-in-the-loop review — client onboarding cut from weeks to days.",
+      "Agentic Gemini workflow that curates a business's data hierarchy per IBP/S&OP practices and generates an interactive demand/supply/resource dashboard you can alter in natural language.",
+      "In-app help bot on LangChain + AgentScope with persistent cross-session user memory, so answers personalize over time.",
+      "End-to-end ETL infrastructure from scratch: Microsoft Fabric, Apache Airflow, SQL Server, PostgreSQL.",
+    ],
+  },
+  {
+    company: "Infosys",
+    role: "Data Engineer",
+    period: "jan 2022 – dec 2024",
+    bullets: [
+      "Spotfire dashboards over SQL, Oracle, and Redshift serving 10,000+ daily users across departments — a 30% increase in data-driven decision making.",
+      "Migrated 500+ reports from legacy systems using custom Python workflows and REST automation.",
+      "Deployed Spotfire on AWS, cutting data retrieval times 25%.",
+      "Discrepancy-detection dashboard in IronPython and R for real-time validation during a data warehouse migration — 35% better discrepancy checks.",
+      "Two Infosys Rising Star awards (2023, 2024) — for leading a migration that cut costs 20%, and for client relationship management.",
+    ],
+  },
+  {
+    company: "Infosys",
+    role: "ETL Developer",
+    period: "apr 2021 – dec 2021",
+    bullets: [
+      "Built and optimized ETL pipelines with Oracle Data Integrator, improving integration accuracy 25% and data retrieval speed 16x via custom Python performance analysis.",
+    ],
+  },
+];
+
+export const toolbox = {
+  "ai & agentic": ["Claude agents & skills", "LangChain", "AgentScope", "Gemini API"],
+  "data & bi": ["Microsoft Fabric", "Airflow", "Spotfire", "Power BI", "SQL Server", "PostgreSQL", "Oracle", "Redshift", "Hive"],
+  languages: ["Python", "Java", "C", "C++", "C#", "JavaScript/TypeScript"],
+  "cloud & tools": ["AWS", "Docker", "Git/GitHub", "JIRA"],
+};
+
+export const education = "B.S. Computer Science — University of California, Riverside (2021)";
 
 export const skills: Skill[] = [
   {
