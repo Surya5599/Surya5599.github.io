@@ -1,334 +1,314 @@
-import { useEffect, useRef, useState } from "react";
-import { profile, skills, experience, toolbox, education, type Skill } from "./data/profile";
+import { useEffect, useState } from "react";
+import { profile, skills, experience, toolbox, education, type Skill, type Job } from "./data/profile";
 import Chat from "./Chat";
 import SimModal from "./SimModal";
 import { SIMS } from "./sims";
-import HeroFlow from "./HeroFlow";
 
-/* ---------- animation helpers ---------- */
+// The garden is generated from the data arrays: every job grows a branch,
+// every project opens a blossom, every toolbox group rests as a stone.
+// Add to src/data/profile.ts and the tree grows on its own.
 
-function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          el.classList.add("in");
-          io.disconnect();
-        }
-      },
-      { threshold: 0.15 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+type Selection =
+  | { kind: "job"; job: Job }
+  | { kind: "project"; skill: Skill }
+  | { kind: "stone"; group: string; items: string[] }
+  | { kind: "gardener" }
+  | null;
+
+/* ---- generated geometry (viewBox 800 x 880, ground y=830) ---- */
+
+const TRUNK = "M 400 830 C 396 740, 410 700, 398 620 C 386 540, 408 480, 400 400 C 394 340, 402 310, 399 280";
+
+function branchGeometry(count: number) {
+  return Array.from({ length: count }, (_, i) => {
+    const side = i % 2 === 0 ? 1 : -1; // newest job branches right
+    const y = 620 - i * 95;
+    const len = 190 - i * 25;
+    const x1 = 400 + side * 4;
+    const x2 = 400 + side * len;
+    const y2 = y - 60 - i * 8;
+    return { d: `M ${x1} ${y} C ${400 + side * len * 0.4} ${y - 8}, ${400 + side * len * 0.75} ${y2 + 34}, ${x2} ${y2}`, x: x2, y: y2, side };
+  });
+}
+
+function blossomGeometry(count: number) {
+  // spread across the canopy in a gentle arc; more projects = a fuller crown
+  return Array.from({ length: count }, (_, i) => {
+    const t = count === 1 ? 0.5 : i / (count - 1);
+    const angle = Math.PI * (1.12 - t * 1.24); // ~200° → ~-22°
+    const r = 150 + (i % 3) * 34;
+    return { x: 400 + Math.cos(angle) * r, y: 250 - Math.sin(angle) * 96 + (i % 2) * 26 };
+  });
+}
+
+const BRANCHES = branchGeometry(experience.length);
+const BLOSSOMS = blossomGeometry(skills.length);
+const STONES = Object.entries(toolbox).map(([group, items], i) => ({
+  group,
+  items,
+  x: 160 + i * 155,
+  y: 812 - (i % 2) * 10,
+  rx: 46 + (items.length > 6 ? 10 : 0),
+}));
+
+const PETALS = Array.from({ length: 7 }, (_, i) => ({
+  left: `${8 + i * 13}%`,
+  delay: `${i * 2.3}s`,
+  duration: `${11 + (i % 3) * 3}s`,
+  scale: 0.7 + (i % 3) * 0.25,
+}));
+
+function Flower({ x, y, active }: { x: number; y: number; active: boolean }) {
   return (
-    <div ref={ref} className="reveal" style={{ transitionDelay: `${delay}ms` }}>
-      {children}
-    </div>
+    <g transform={`translate(${x} ${y})`}>
+      {[0, 72, 144, 216, 288].map((a) => (
+        <ellipse
+          key={a}
+          rx="7.5"
+          ry="11"
+          transform={`rotate(${a}) translate(0 -8)`}
+          fill={active ? "var(--color-clay)" : "var(--color-blossom)"}
+          opacity={active ? 0.95 : 0.85}
+        />
+      ))}
+      <circle r="4.5" fill="var(--color-amber)" />
+    </g>
   );
 }
-
-function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      el.textContent = to.toLocaleString() + suffix;
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        const t0 = performance.now();
-        const dur = 1400;
-        const tick = (t: number) => {
-          const p = Math.min(1, (t - t0) / dur);
-          const eased = 1 - Math.pow(1 - p, 3);
-          el.textContent = Math.round(to * eased).toLocaleString() + suffix;
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      },
-      { threshold: 0.5 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [to, suffix]);
-  return <span ref={ref}>0{suffix}</span>;
-}
-
-/* ---------- pipeline stage scaffolding ---------- */
-
-function Stage({
-  num,
-  name,
-  title,
-  aside,
-  id,
-  children,
-}: {
-  num: string;
-  name: string;
-  title: string;
-  aside?: string;
-  id: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className="relative pb-24 pl-8 sm:pl-16">
-      <span className="node-pulse absolute -left-[7px] top-1 h-[15px] w-[15px] rounded-full border-2 border-clay bg-paper" />
-      <Reveal>
-        <p className="font-mono text-xs tracking-widest text-clay">
-          stage {num} · {name}
-        </p>
-        <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-4xl font-medium sm:text-5xl">{title}</h2>
-          {aside && <span className="font-mono text-xs text-faded">{aside}</span>}
-        </div>
-      </Reveal>
-      <div className="mt-10">{children}</div>
-    </section>
-  );
-}
-
-/* ---------- project cards ---------- */
-
-const STATUS_STYLE: Record<Skill["status"], string> = {
-  active: "text-moss border-moss/40",
-  shipped: "text-clay border-clay/40",
-  archived: "text-faded border-hairline",
-};
-
-function ProjectCard({ skill, index }: { skill: Skill; index: number }) {
-  const [open, setOpen] = useState(false);
-  const [simOpen, setSimOpen] = useState(false);
-  const sim = SIMS[skill.slug];
-  return (
-    <Reveal delay={(index % 2) * 90}>
-      <article className="group h-full rounded-xl border border-hairline bg-linen p-6 transition-all duration-300 hover:-translate-y-1 hover:border-clay/50 hover:shadow-[0_12px_40px_-18px_rgba(103,232,249,0.35)]">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-2xl font-medium">{skill.name}</h3>
-          <span className={`shrink-0 rounded-full border px-2.5 py-0.5 font-mono text-[10px] ${STATUS_STYLE[skill.status]}`}>
-            {skill.status}
-          </span>
-        </div>
-        <p className="mt-3 leading-relaxed text-ink/80">{skill.description}</p>
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {skill.tools.map((t) => (
-            <span key={t} className="rounded-md bg-oat px-2 py-0.5 font-mono text-[11px] text-faded">
-              {t}
-            </span>
-          ))}
-        </div>
-        {open && <p className="mt-4 text-sm leading-relaxed text-ink/70">{skill.detail}</p>}
-        <div className="mt-5 flex flex-wrap items-center gap-5 font-mono text-xs">
-          {sim && (
-            <button
-              onClick={() => setSimOpen(true)}
-              className="cursor-pointer rounded-md bg-clay/10 px-3 py-1.5 text-clay transition-colors hover:bg-clay/20"
-            >
-              ▶ run simulation
-            </button>
-          )}
-          <button onClick={() => setOpen((o) => !o)} className="cursor-pointer text-faded hover:text-ink">
-            {open ? "less" : "more"}
-          </button>
-          {skill.repo && (
-            <a
-              href={skill.repo}
-              target="_blank"
-              rel="noreferrer"
-              className="ml-auto text-faded underline decoration-hairline underline-offset-4 hover:text-clay"
-            >
-              github ↗
-            </a>
-          )}
-        </div>
-        {sim && simOpen && (
-          <SimModal title={sim.title} onClose={() => setSimOpen(false)}>
-            <sim.component />
-          </SimModal>
-        )}
-      </article>
-    </Reveal>
-  );
-}
-
-/* ---------- app ---------- */
-
-const STATS = [
-  { to: 4, suffix: "+", label: "years in data engineering" },
-  { to: 10000, suffix: "+", label: "daily users on my dashboards" },
-  { to: 500, suffix: "+", label: "reports migrated off legacy" },
-  { to: 16, suffix: "×", label: "data retrieval speedup" },
-];
 
 export default function App() {
-  const [progress, setProgress] = useState(0);
+  const [sel, setSel] = useState<Selection>(null);
+  const [simOpen, setSimOpen] = useState(false);
+  const [visited, setVisited] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? window.scrollY / max : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSel(null);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, []);
 
+  function open(s: Exclude<Selection, null>, key: string) {
+    setSel(s);
+    setVisited((v) => new Set(v).add(key));
+  }
+
+  const totalSpots = experience.length + skills.length + STONES.length + 1;
+
   return (
-    <>
-      {/* top bar */}
-      <nav className="fixed inset-x-0 top-0 z-40 border-b border-hairline bg-paper/85 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center gap-6 px-5 py-3 sm:px-8">
-          <a href="#top" className="font-display text-lg font-medium">
-            Surya Singh
-          </a>
-          <div className="ml-auto flex gap-5 font-mono text-xs text-faded">
-            <a className="hover:text-clay" href="#experience">experience</a>
-            <a className="hover:text-clay" href="#projects">projects</a>
-            <a className="hover:text-clay" href="#query">ask ai</a>
-            <a className="hover:text-clay" href={profile.github} target="_blank" rel="noreferrer">github</a>
-          </div>
-        </div>
-        <div
-          className="h-[2px] origin-left bg-gradient-to-r from-clay via-violet to-amber transition-transform duration-150"
-          style={{ transform: `scaleX(${progress})` }}
-        />
-      </nav>
-
-      <main id="top" className="mx-auto max-w-5xl px-5 pt-24 sm:px-8">
-        {/* hero */}
-        <header className="pb-20 pt-12 sm:pt-20">
-          <Reveal>
-            <p className="font-mono text-xs tracking-widest text-faded">
-              {profile.location.toLowerCase()} · {profile.role.toLowerCase()} · agentic ai
-            </p>
-            <h1 className="mt-5 font-display text-5xl font-medium leading-[1.02] sm:text-7xl">
-              Raw data in.
-              <br />
-              <span className="bg-gradient-to-r from-clay via-violet to-amber bg-clip-text text-transparent">
-                Decisions out.
-              </span>
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink/80">{profile.tagline}</p>
-          </Reveal>
-          <Reveal delay={150}>
-            <div className="mt-10 h-56 overflow-hidden rounded-xl border border-hairline bg-linen sm:h-64">
-              <HeroFlow />
-            </div>
-            <p className="mt-2 text-right font-mono text-[10px] text-faded">
-              live: chaos → agent → ordered streams
-            </p>
-          </Reveal>
-          <Reveal delay={250}>
-            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {STATS.map((s) => (
-                <div key={s.label} className="rounded-xl border border-hairline bg-linen p-4">
-                  <p className="font-display text-3xl font-medium text-clay">
-                    <CountUp to={s.to} suffix={s.suffix} />
-                  </p>
-                  <p className="mt-1 text-xs leading-snug text-faded">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </header>
-
-        {/* pipeline */}
-        <div className="relative">
-          {/* rail */}
-          <div className="absolute bottom-0 left-0 top-0 w-px bg-hairline" aria-hidden>
-            <span className="packet absolute -left-[2px] h-[5px] w-[5px] rounded-full bg-clay" />
-            <span className="packet absolute -left-[2px] h-[5px] w-[5px] rounded-full bg-violet" style={{ animationDelay: "3s" }} />
-            <span className="packet absolute -left-[2px] h-[5px] w-[5px] rounded-full bg-amber" style={{ animationDelay: "6s" }} />
-          </div>
-
-          <Stage num="01" name="transform" title="Experience" aside="4+ years · 2 companies" id="experience">
-            <div className="space-y-6">
-              {experience.map((job, i) => (
-                <Reveal key={job.company + job.period} delay={i * 80}>
-                  <article className="rounded-xl border border-hairline bg-linen p-6 transition-colors hover:border-clay/40">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h3 className="font-display text-2xl font-medium">
-                        {job.role} <span className="text-faded">@ {job.company}</span>
-                      </h3>
-                      <span className="font-mono text-xs text-faded">{job.period}</span>
-                    </div>
-                    <ul className="mt-4 space-y-2.5">
-                      {job.bullets.map((b) => (
-                        <li key={b.slice(0, 32)} className="flex gap-3 leading-relaxed text-ink/80">
-                          <span className="mt-[9px] h-1 w-3 shrink-0 rounded-full bg-clay/50" aria-hidden />
-                          <span>{b}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </article>
-                </Reveal>
-              ))}
-              <Reveal>
-                <p className="font-mono text-xs text-faded">{education}</p>
-              </Reveal>
-            </div>
-          </Stage>
-
-          <Stage num="02" name="load" title="Projects" aside={`${skills.length} shipped · 2 playable`} id="projects">
-            <div className="grid gap-5 sm:grid-cols-2">
-              {skills.map((s, i) => (
-                <ProjectCard key={s.slug} skill={s} index={i} />
-              ))}
-            </div>
-          </Stage>
-
-          <Stage num="03" name="serve" title="Toolbox" id="toolbox">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {Object.entries(toolbox).map(([group, items], i) => (
-                <Reveal key={group} delay={i * 70}>
-                  <div className="rounded-xl border border-hairline bg-linen p-5">
-                    <p className="font-mono text-xs tracking-widest text-clay">{group}</p>
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {items.map((t) => (
-                        <span key={t} className="rounded-md bg-oat px-2.5 py-1 text-sm text-ink/80">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </Stage>
-
-          <Stage
-            num="04"
-            name="query"
-            title="Ask the pipeline"
-            aside="gemini · grounded in my real work"
-            id="query"
+    <div className="min-h-dvh">
+      {/* falling petals */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
+        {PETALS.map((p, i) => (
+          <span
+            key={i}
+            className="petal absolute top-0"
+            style={{ left: p.left, animationDelay: p.delay, animationDuration: p.duration }}
           >
-            <Reveal>
-              <p className="max-w-2xl leading-relaxed text-ink/80">
-                An AI that knows everything on this page — my roles, projects, and stack — and
-                nothing it can't back up. Ask it what a recruiter would ask me.
-              </p>
-              <Chat />
-            </Reveal>
-          </Stage>
-        </div>
-      </main>
+            <svg width={14 * p.scale} height={14 * p.scale} viewBox="0 0 14 14">
+              <path d="M7 0 C11 3, 12 8, 7 14 C2 8, 3 3, 7 0" fill="var(--color-blossom)" opacity=".55" />
+            </svg>
+          </span>
+        ))}
+      </div>
 
-      <footer className="border-t border-hairline">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-1 px-5 py-8 font-mono text-xs text-faded sm:px-8">
-          <span>© {new Date().getFullYear()} {profile.name}</span>
-          <a className="hover:text-clay" href={`mailto:${profile.email}`}>{profile.email}</a>
-          <span className="ml-auto">vite + react · netlify · supabase</span>
+      {/* masthead */}
+      <header className="mx-auto flex max-w-6xl flex-wrap items-baseline justify-between gap-2 px-6 pt-8">
+        <div>
+          <h1 className="font-display text-3xl sm:text-4xl">{profile.name}</h1>
+          <p className="mt-1 text-sm text-faded">
+            {profile.role} · {profile.location} — a career, grown. Click anything living.
+          </p>
         </div>
+        <p className="text-xs text-faded">
+          {visited.size}/{totalSpots} spots visited ·{" "}
+          <a className="underline decoration-hairline underline-offset-4 hover:text-ink" href={profile.github} target="_blank" rel="noreferrer">
+            github
+          </a>{" "}
+          ·{" "}
+          <a className="underline decoration-hairline underline-offset-4 hover:text-ink" href={`mailto:${profile.email}`}>
+            email
+          </a>
+        </p>
+      </header>
+
+      {/* legend */}
+      <div className="mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-1 px-6 pt-4 text-xs text-faded">
+        <span><span className="text-moss">⟋</span> branches — where I've worked</span>
+        <span><span className="text-blossom">✿</span> blossoms — what I've built</span>
+        <span><span className="text-faded">●</span> stones — my tools</span>
+        <span><span className="text-amber">◍</span> lantern — ask my AI</span>
+      </div>
+
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-2 pb-10 sm:px-6 lg:flex-row">
+        {/* the garden */}
+        <svg viewBox="0 0 800 880" className="mx-auto h-[80vh] min-h-[480px] w-full max-w-[820px] flex-1" role="img" aria-label="An interactive tree of Surya's career">
+          {/* ground */}
+          <path d="M 60 830 Q 400 800 740 830" fill="none" stroke="var(--color-hairline)" strokeWidth="2" />
+          <ellipse cx="400" cy="842" rx="330" ry="14" fill="var(--color-linen)" />
+
+          <g className="sway">
+            {/* trunk */}
+            <path d={TRUNK} className="draw" fill="none" stroke="var(--color-ink)" strokeWidth="10" strokeLinecap="round" />
+            {/* branches = jobs */}
+            {BRANCHES.map((b, i) => {
+              const job = experience[i];
+              const key = `job-${i}`;
+              return (
+                <g key={key}>
+                  <path
+                    d={b.d}
+                    className="draw"
+                    style={{ animationDelay: `${0.7 + i * 0.3}s` }}
+                    fill="none"
+                    stroke="var(--color-ink)"
+                    strokeWidth={6 - i}
+                    strokeLinecap="round"
+                  />
+                  <g
+                    className="bloom cursor-pointer"
+                    style={{ animationDelay: `${1.5 + i * 0.3}s` }}
+                    onClick={() => open({ kind: "job", job }, key)}
+                  >
+                    <circle cx={b.x} cy={b.y} r="17" fill="var(--color-moss)" opacity="0.92" />
+                    <circle cx={b.x} cy={b.y} r="24" fill="transparent" stroke={visited.has(key) ? "var(--color-moss)" : "transparent"} strokeWidth="1.5" strokeDasharray="3 4" />
+                    <text x={b.x + (b.side > 0 ? 30 : -30)} y={b.y + 4} textAnchor={b.side > 0 ? "start" : "end"} fontSize="15" fill="var(--color-ink)" fontFamily="var(--font-display)">
+                      {job.company}
+                    </text>
+                  </g>
+                </g>
+              );
+            })}
+            {/* blossoms = projects */}
+            {BLOSSOMS.map((p, i) => {
+              const skill = skills[i];
+              const key = `proj-${i}`;
+              return (
+                <g
+                  key={key}
+                  className="bloom cursor-pointer transition-transform hover:scale-110"
+                  style={{ animationDelay: `${2 + i * 0.15}s`, transformBox: "fill-box", transformOrigin: "center" }}
+                  onClick={() => open({ kind: "project", skill }, key)}
+                >
+                  <Flower x={p.x} y={p.y} active={visited.has(key)} />
+                  <title>{skill.name}</title>
+                </g>
+              );
+            })}
+          </g>
+
+          {/* stones = toolbox */}
+          {STONES.map((s, i) => {
+            const key = `stone-${i}`;
+            return (
+              <g key={key} className="bloom cursor-pointer" style={{ animationDelay: `${2.6 + i * 0.12}s` }} onClick={() => open({ kind: "stone", group: s.group, items: s.items }, key)}>
+                <ellipse cx={s.x} cy={s.y} rx={s.rx} ry="17" fill="var(--color-oat)" stroke="var(--color-hairline)" />
+                <text x={s.x} y={s.y + 4} textAnchor="middle" fontSize="11" fill="var(--color-faded)">
+                  {s.group}
+                </text>
+                {visited.has(key) && <circle cx={s.x + s.rx - 7} cy={s.y - 12} r="3" fill="var(--color-moss)" />}
+              </g>
+            );
+          })}
+
+          {/* lantern = ask the gardener */}
+          <g className="bloom cursor-pointer" style={{ animationDelay: "3s" }} onClick={() => open({ kind: "gardener" }, "gardener")}>
+            <line x1="672" y1="700" x2="672" y2="812" stroke="var(--color-ink)" strokeWidth="3" />
+            <path d="M 650 700 h44 l-6 -14 h-32 z" fill="var(--color-ink)" />
+            <rect x="656" y="700" width="32" height="42" rx="4" fill="var(--color-amber)" opacity="0.9" />
+            <rect x="656" y="700" width="32" height="42" rx="4" fill="none" stroke="var(--color-ink)" strokeWidth="2" />
+            <text x="672" y="770" textAnchor="middle" fontSize="12" fill="var(--color-faded)">ask the gardener</text>
+            <title>Ask my AI anything</title>
+          </g>
+        </svg>
+
+        {/* shoji panel */}
+        {sel && (
+          <aside
+            className="panel-enter z-30 w-full rounded-2xl border border-hairline bg-paper/95 p-6 shadow-[0_16px_50px_-20px_rgba(42,42,36,0.35)] backdrop-blur lg:sticky lg:top-6 lg:h-fit lg:max-h-[88vh] lg:w-[380px] lg:overflow-y-auto"
+            role="dialog"
+            aria-label="Details"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="font-display text-2xl leading-snug">
+                {sel.kind === "job" && `${sel.job.role} · ${sel.job.company}`}
+                {sel.kind === "project" && sel.skill.name}
+                {sel.kind === "stone" && sel.group}
+                {sel.kind === "gardener" && "Ask the gardener"}
+              </h2>
+              <button onClick={() => setSel(null)} className="cursor-pointer text-sm text-faded hover:text-ink" aria-label="Close panel">
+                ✕
+              </button>
+            </div>
+
+            {sel.kind === "job" && (
+              <>
+                <p className="mt-1 text-xs text-faded">{sel.job.period}</p>
+                <ul className="mt-4 space-y-2.5 text-[15px] leading-relaxed text-ink/85">
+                  {sel.job.bullets.map((b) => (
+                    <li key={b.slice(0, 32)} className="flex gap-2.5">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-moss" aria-hidden />
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-xs text-faded">{education}</p>
+              </>
+            )}
+
+            {sel.kind === "project" && (
+              <>
+                <p className="mt-1 text-xs capitalize text-faded">{sel.skill.status} · {sel.skill.tools.join(" · ")}</p>
+                <p className="mt-4 text-[15px] leading-relaxed text-ink/85">{sel.skill.description}</p>
+                <p className="mt-3 text-[14px] leading-relaxed text-faded">{sel.skill.detail}</p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {SIMS[sel.skill.slug] && (
+                    <button onClick={() => setSimOpen(true)} className="cursor-pointer rounded-full bg-clay px-4 py-2 text-sm text-paper transition-colors hover:bg-clay-deep">
+                      ▶ Play with it
+                    </button>
+                  )}
+                  {sel.skill.repo && (
+                    <a href={sel.skill.repo} target="_blank" rel="noreferrer" className="rounded-full border border-hairline px-4 py-2 text-sm text-faded transition-colors hover:border-ink hover:text-ink">
+                      View code ↗
+                    </a>
+                  )}
+                </div>
+                {SIMS[sel.skill.slug] && simOpen && (
+                  <SimModal title={SIMS[sel.skill.slug].title} onClose={() => setSimOpen(false)}>
+                    {(() => {
+                      const S = SIMS[sel.skill.slug].component;
+                      return <S />;
+                    })()}
+                  </SimModal>
+                )}
+              </>
+            )}
+
+            {sel.kind === "stone" && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {sel.items.map((t) => (
+                  <span key={t} className="rounded-full bg-linen px-3 py-1.5 text-sm text-ink/80">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {sel.kind === "gardener" && (
+              <>
+                <p className="mt-3 text-sm leading-relaxed text-faded">
+                  A Gemini-powered guide that knows this whole garden — every branch, blossom, and
+                  stone — and nothing more. Ask it anything about my work.
+                </p>
+                <Chat />
+              </>
+            )}
+          </aside>
+        )}
+      </div>
+
+      <footer className="mx-auto max-w-6xl px-6 pb-8 text-xs text-faded">
+        © {new Date().getFullYear()} {profile.name} — the tree grows as the work does: every job a branch, every project a blossom.
       </footer>
-    </>
+    </div>
   );
 }
