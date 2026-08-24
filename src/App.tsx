@@ -3,9 +3,8 @@ import { profile, skills, experience, toolbox, education, type Skill } from "./d
 import Chat from "./Chat";
 import SimModal from "./SimModal";
 import { SIMS } from "./sims";
-import HeroFlow from "./HeroFlow";
 
-/* ---------- animation helpers ---------- */
+/* ---------- motion ---------- */
 
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -19,7 +18,7 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
           io.disconnect();
         }
       },
-      { threshold: 0.15 },
+      { threshold: 0.12 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -45,7 +44,7 @@ function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
         if (!e.isIntersecting) return;
         io.disconnect();
         const t0 = performance.now();
-        const dur = 1400;
+        const dur = 1200;
         const tick = (t: number) => {
           const p = Math.min(1, (t - t0) / dur);
           const eased = 1 - Math.pow(1 - p, 3);
@@ -54,7 +53,7 @@ function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
         };
         requestAnimationFrame(tick);
       },
-      { threshold: 0.5 },
+      { threshold: 0.6 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -62,92 +61,39 @@ function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
   return <span ref={ref}>0{suffix}</span>;
 }
 
-/* ---------- pipeline stage scaffolding ---------- */
+/* ---------- projects: quiet rows, no cards ---------- */
 
-function Stage({
-  num,
-  name,
-  title,
-  aside,
-  id,
-  children,
-}: {
-  num: string;
-  name: string;
-  title: string;
-  aside?: string;
-  id: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className="relative pb-24 pl-8 sm:pl-16">
-      <span className="node-pulse absolute -left-[7px] top-1 h-[15px] w-[15px] rounded-full border-2 border-clay bg-paper" />
-      <Reveal>
-        <p className="font-mono text-xs tracking-widest text-clay">
-          stage {num} · {name}
-        </p>
-        <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-4xl font-medium sm:text-5xl">{title}</h2>
-          {aside && <span className="font-mono text-xs text-faded">{aside}</span>}
-        </div>
-      </Reveal>
-      <div className="mt-10">{children}</div>
-    </section>
-  );
-}
-
-/* ---------- project cards ---------- */
-
-const STATUS_STYLE: Record<Skill["status"], string> = {
-  active: "text-moss border-moss/40",
-  shipped: "text-clay border-clay/40",
-  archived: "text-faded border-hairline",
-};
-
-function ProjectCard({ skill, index }: { skill: Skill; index: number }) {
+function ProjectRow({ skill }: { skill: Skill }) {
   const [open, setOpen] = useState(false);
   const [simOpen, setSimOpen] = useState(false);
   const sim = SIMS[skill.slug];
   return (
-    <Reveal delay={(index % 2) * 90}>
-      <article className="group h-full rounded-xl border border-hairline bg-linen p-6 transition-all duration-300 hover:-translate-y-1 hover:border-clay/50 hover:shadow-[0_12px_40px_-18px_rgba(103,232,249,0.35)]">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-2xl font-medium">{skill.name}</h3>
-          <span className={`shrink-0 rounded-full border px-2.5 py-0.5 font-mono text-[10px] ${STATUS_STYLE[skill.status]}`}>
-            {skill.status}
-          </span>
-        </div>
-        <p className="mt-3 leading-relaxed text-ink/80">{skill.description}</p>
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {skill.tools.map((t) => (
-            <span key={t} className="rounded-md bg-oat px-2 py-0.5 font-mono text-[11px] text-faded">
-              {t}
-            </span>
-          ))}
-        </div>
-        {open && <p className="mt-4 text-sm leading-relaxed text-ink/70">{skill.detail}</p>}
-        <div className="mt-5 flex flex-wrap items-center gap-5 font-mono text-xs">
-          {sim && (
-            <button
-              onClick={() => setSimOpen(true)}
-              className="cursor-pointer rounded-md bg-clay/10 px-3 py-1.5 text-clay transition-colors hover:bg-clay/20"
-            >
-              ▶ run simulation
-            </button>
-          )}
-          <button onClick={() => setOpen((o) => !o)} className="cursor-pointer text-faded hover:text-ink">
-            {open ? "less" : "more"}
-          </button>
-          {skill.repo && (
-            <a
-              href={skill.repo}
-              target="_blank"
-              rel="noreferrer"
-              className="ml-auto text-faded underline decoration-hairline underline-offset-4 hover:text-clay"
-            >
-              github ↗
-            </a>
-          )}
+    <Reveal>
+      <article className="group border-t border-hairline py-9 first:border-t-0">
+        <div className="sm:grid sm:grid-cols-[1fr_2fr] sm:gap-10">
+          <div>
+            <h3 className="font-display text-2xl font-semibold tracking-tight">{skill.name}</h3>
+            <p className="mt-1 text-sm text-faded">{skill.tools.slice(0, 3).join(" · ")}</p>
+          </div>
+          <div className="mt-3 sm:mt-0">
+            <p className="text-[17px] leading-relaxed text-ink/85">{skill.description}</p>
+            {open && <p className="mt-3 text-[15px] leading-relaxed text-faded">{skill.detail}</p>}
+            <div className="mt-4 flex flex-wrap items-center gap-6 text-[15px]">
+              {sim && (
+                <button onClick={() => setSimOpen(true)} className="quiet-link cursor-pointer">
+                  Run the simulation <span className="arrow">›</span>
+                </button>
+              )}
+              <button onClick={() => setOpen((o) => !o)} className="quiet-link cursor-pointer">
+                {open ? "Less" : "Learn more"} <span className="arrow">›</span>
+              </button>
+              {skill.repo && (
+                <a href={skill.repo} target="_blank" rel="noreferrer" className="quiet-link">
+                  View on GitHub <span className="arrow">↗</span>
+                </a>
+              )}
+            </div>
+          </div>
         </div>
         {sim && simOpen && (
           <SimModal title={sim.title} onClose={() => setSimOpen(false)}>
@@ -162,172 +108,167 @@ function ProjectCard({ skill, index }: { skill: Skill; index: number }) {
 /* ---------- app ---------- */
 
 const STATS = [
-  { to: 4, suffix: "+", label: "years in data engineering" },
-  { to: 10000, suffix: "+", label: "daily users on my dashboards" },
-  { to: 500, suffix: "+", label: "reports migrated off legacy" },
-  { to: 16, suffix: "×", label: "data retrieval speedup" },
+  { to: 4, suffix: "+", label: "years in data" },
+  { to: 10000, suffix: "+", label: "daily dashboard users" },
+  { to: 500, suffix: "+", label: "reports migrated" },
+  { to: 16, suffix: "×", label: "retrieval speedup" },
 ];
 
 export default function App() {
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? window.scrollY / max : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
     <>
-      {/* top bar */}
-      <nav className="fixed inset-x-0 top-0 z-40 border-b border-hairline bg-paper/85 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center gap-6 px-5 py-3 sm:px-8">
-          <a href="#top" className="font-display text-lg font-medium">
+      <nav className="fixed inset-x-0 top-0 z-40 border-b border-hairline/60 bg-paper/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3 text-sm">
+          <a href="#top" className="font-semibold tracking-tight">
             Surya Singh
           </a>
-          <div className="ml-auto flex gap-5 font-mono text-xs text-faded">
-            <a className="hover:text-clay" href="#experience">experience</a>
-            <a className="hover:text-clay" href="#projects">projects</a>
-            <a className="hover:text-clay" href="#query">ask ai</a>
-            <a className="hover:text-clay" href={profile.github} target="_blank" rel="noreferrer">github</a>
+          <div className="flex gap-7 text-faded">
+            <a className="transition-colors hover:text-ink" href="#work">Work</a>
+            <a className="transition-colors hover:text-ink" href="#projects">Projects</a>
+            <a className="transition-colors hover:text-ink" href="#ask">Ask</a>
+            <a className="transition-colors hover:text-ink" href={profile.github} target="_blank" rel="noreferrer">GitHub</a>
           </div>
         </div>
-        <div
-          className="h-[2px] origin-left bg-gradient-to-r from-clay via-violet to-amber transition-transform duration-150"
-          style={{ transform: `scaleX(${progress})` }}
-        />
       </nav>
 
-      <main id="top" className="mx-auto max-w-5xl px-5 pt-24 sm:px-8">
+      <main id="top">
         {/* hero */}
-        <header className="pb-20 pt-12 sm:pt-20">
+        <header className="mx-auto max-w-4xl px-6 pb-28 pt-44 text-center">
           <Reveal>
-            <p className="font-mono text-xs tracking-widest text-faded">
-              {profile.location.toLowerCase()} · {profile.role.toLowerCase()} · agentic ai
-            </p>
-            <h1 className="mt-5 font-display text-5xl font-medium leading-[1.02] sm:text-7xl">
-              Raw data in.
-              <br />
-              <span className="bg-gradient-to-r from-clay via-violet to-amber bg-clip-text text-transparent">
-                Decisions out.
-              </span>
+            <h1 className="font-display text-5xl font-semibold tracking-tight sm:text-7xl">
+              Data engineer.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink/80">{profile.tagline}</p>
+            <h1 className="mt-1 font-display text-5xl font-semibold tracking-tight text-faded sm:text-7xl">
+              Agent builder.
+            </h1>
           </Reveal>
-          <Reveal delay={150}>
-            <div className="mt-10 h-56 overflow-hidden rounded-xl border border-hairline bg-linen sm:h-64">
-              <HeroFlow />
-            </div>
-            <p className="mt-2 text-right font-mono text-[10px] text-faded">
-              live: chaos → agent → ordered streams
+          <Reveal delay={140}>
+            <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-ink/80 sm:text-xl">
+              {profile.tagline}
             </p>
           </Reveal>
-          <Reveal delay={250}>
-            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {STATS.map((s) => (
-                <div key={s.label} className="rounded-xl border border-hairline bg-linen p-4">
-                  <p className="font-display text-3xl font-medium text-clay">
-                    <CountUp to={s.to} suffix={s.suffix} />
-                  </p>
-                  <p className="mt-1 text-xs leading-snug text-faded">{s.label}</p>
-                </div>
-              ))}
+          <Reveal delay={240}>
+            <div className="mt-9 flex items-center justify-center gap-7 text-[15px]">
+              <a href="#projects" className="rounded-full bg-clay px-5 py-2.5 text-white transition-colors hover:bg-clay-deep">
+                See the work
+              </a>
+              <a href="#ask" className="quiet-link">
+                Ask my AI anything <span className="arrow">›</span>
+              </a>
             </div>
           </Reveal>
         </header>
 
-        {/* pipeline */}
-        <div className="relative">
-          {/* rail */}
-          <div className="absolute bottom-0 left-0 top-0 w-px bg-hairline" aria-hidden>
-            <span className="packet absolute -left-[2px] h-[5px] w-[5px] rounded-full bg-clay" />
-            <span className="packet absolute -left-[2px] h-[5px] w-[5px] rounded-full bg-violet" style={{ animationDelay: "3s" }} />
-            <span className="packet absolute -left-[2px] h-[5px] w-[5px] rounded-full bg-amber" style={{ animationDelay: "6s" }} />
-          </div>
-
-          <Stage num="01" name="transform" title="Experience" aside="4+ years · 2 companies" id="experience">
-            <div className="space-y-6">
-              {experience.map((job, i) => (
-                <Reveal key={job.company + job.period} delay={i * 80}>
-                  <article className="rounded-xl border border-hairline bg-linen p-6 transition-colors hover:border-clay/40">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h3 className="font-display text-2xl font-medium">
-                        {job.role} <span className="text-faded">@ {job.company}</span>
-                      </h3>
-                      <span className="font-mono text-xs text-faded">{job.period}</span>
-                    </div>
-                    <ul className="mt-4 space-y-2.5">
-                      {job.bullets.map((b) => (
-                        <li key={b.slice(0, 32)} className="flex gap-3 leading-relaxed text-ink/80">
-                          <span className="mt-[9px] h-1 w-3 shrink-0 rounded-full bg-clay/50" aria-hidden />
-                          <span>{b}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </article>
-                </Reveal>
-              ))}
-              <Reveal>
-                <p className="font-mono text-xs text-faded">{education}</p>
+        {/* stats band */}
+        <section className="bg-linen">
+          <div className="mx-auto grid max-w-4xl grid-cols-2 gap-y-10 px-6 py-16 text-center sm:grid-cols-4">
+            {STATS.map((s, i) => (
+              <Reveal key={s.label} delay={i * 70}>
+                <p className="font-display text-4xl font-semibold tracking-tight">
+                  <CountUp to={s.to} suffix={s.suffix} />
+                </p>
+                <p className="mt-1.5 text-sm text-faded">{s.label}</p>
               </Reveal>
-            </div>
-          </Stage>
+            ))}
+          </div>
+        </section>
 
-          <Stage num="02" name="load" title="Projects" aside={`${skills.length} shipped · 2 playable`} id="projects">
-            <div className="grid gap-5 sm:grid-cols-2">
-              {skills.map((s, i) => (
-                <ProjectCard key={s.slug} skill={s} index={i} />
-              ))}
-            </div>
-          </Stage>
-
-          <Stage num="03" name="serve" title="Toolbox" id="toolbox">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {Object.entries(toolbox).map(([group, items], i) => (
-                <Reveal key={group} delay={i * 70}>
-                  <div className="rounded-xl border border-hairline bg-linen p-5">
-                    <p className="font-mono text-xs tracking-widest text-clay">{group}</p>
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {items.map((t) => (
-                        <span key={t} className="rounded-md bg-oat px-2.5 py-1 text-sm text-ink/80">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </Stage>
-
-          <Stage
-            num="04"
-            name="query"
-            title="Ask the pipeline"
-            aside="gemini · grounded in my real work"
-            id="query"
-          >
+        {/* work */}
+        <section id="work" className="mx-auto max-w-4xl px-6 py-28">
+          <Reveal>
+            <p className="text-sm font-semibold text-faded">Work</p>
+            <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+              Four years of moving data.
+              <br />
+              <span className="text-faded">Now the agents do the moving.</span>
+            </h2>
+          </Reveal>
+          <div className="mt-16">
+            {experience.map((job) => (
+              <Reveal key={job.company + job.period}>
+                <article className="border-t border-hairline py-10 first:border-t-0 sm:grid sm:grid-cols-[1fr_2fr] sm:gap-10">
+                  <header>
+                    <h3 className="text-xl font-semibold tracking-tight">{job.role}</h3>
+                    <p className="mt-1 text-faded">{job.company}</p>
+                    <p className="mt-0.5 text-sm text-faded">{job.period}</p>
+                  </header>
+                  <ul className="mt-4 space-y-3 sm:mt-0">
+                    {job.bullets.map((b) => (
+                      <li key={b.slice(0, 32)} className="text-[16px] leading-relaxed text-ink/85">
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              </Reveal>
+            ))}
             <Reveal>
-              <p className="max-w-2xl leading-relaxed text-ink/80">
-                An AI that knows everything on this page — my roles, projects, and stack — and
-                nothing it can't back up. Ask it what a recruiter would ask me.
-              </p>
-              <Chat />
+              <p className="border-t border-hairline pt-8 text-sm text-faded">{education}</p>
             </Reveal>
-          </Stage>
-        </div>
+          </div>
+        </section>
+
+        {/* projects */}
+        <section id="projects" className="bg-linen">
+          <div className="mx-auto max-w-4xl px-6 py-28">
+            <Reveal>
+              <p className="text-sm font-semibold text-faded">Projects</p>
+              <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+                Built end to end.
+                <br />
+                <span className="text-faded">Two of them, you can play with.</span>
+              </h2>
+            </Reveal>
+            <div className="mt-14">
+              {skills.map((s) => (
+                <ProjectRow key={s.slug} skill={s} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* toolbox */}
+        <section className="mx-auto max-w-4xl px-6 py-28">
+          <Reveal>
+            <p className="text-sm font-semibold text-faded">Toolbox</p>
+          </Reveal>
+          <div className="mt-8 grid gap-x-10 gap-y-10 sm:grid-cols-2">
+            {Object.entries(toolbox).map(([group, items], i) => (
+              <Reveal key={group} delay={i * 60}>
+                <p className="text-sm font-semibold capitalize">{group}</p>
+                <p className="mt-2 leading-relaxed text-faded">{items.join(", ")}</p>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* ask */}
+        <section id="ask" className="bg-linen">
+          <div className="mx-auto max-w-4xl px-6 py-28">
+            <Reveal>
+              <h2 className="text-center font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+                Have a question?
+                <br />
+                <span className="text-faded">My AI has read all of this.</span>
+              </h2>
+              <p className="mx-auto mt-5 max-w-xl text-center text-[17px] leading-relaxed text-faded">
+                Grounded in my real roles, projects, and stack — it won't claim anything I can't
+                back up.
+              </p>
+            </Reveal>
+            <Reveal delay={120}>
+              <div className="mx-auto mt-12 max-w-2xl">
+                <Chat />
+              </div>
+            </Reveal>
+          </div>
+        </section>
       </main>
 
-      <footer className="border-t border-hairline">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-1 px-5 py-8 font-mono text-xs text-faded sm:px-8">
-          <span>© {new Date().getFullYear()} {profile.name}</span>
-          <a className="hover:text-clay" href={`mailto:${profile.email}`}>{profile.email}</a>
-          <span className="ml-auto">vite + react · netlify · supabase</span>
-        </div>
+      <footer className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-6 gap-y-1 px-6 py-10 text-sm text-faded">
+        <span>© {new Date().getFullYear()} {profile.name}</span>
+        <a className="transition-colors hover:text-ink" href={`mailto:${profile.email}`}>{profile.email}</a>
+        <span className="ml-auto">{profile.location}</span>
       </footer>
     </>
   );

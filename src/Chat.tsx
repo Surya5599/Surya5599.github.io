@@ -46,7 +46,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="mt-8 border border-pane-edge bg-pane text-pane-text">
+    <div className="mt-8 overflow-hidden rounded-2xl border border-pane-edge bg-pane text-pane-text shadow-xl">
       <header className="flex items-center justify-between border-b border-pane-edge px-5 py-2 font-mono text-xs text-pane-dim">
         <span>surya-agent — interactive</span>
         <span>
