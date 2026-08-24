@@ -1,30 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-  /* deep engineering canvas */
-  --color-paper: #0a0e17;
-  --color-linen: #0f1524;
-  --color-oat: #131b2e;
-  --color-ink: #e9edf5;
-  --color-faded: #8a93a8;
-  --color-hairline: #1f2940;
+  --color-paper: #0b0b0e;
+  --color-linen: #131318;
+  --color-oat: #1c1c24;
+  --color-ink: #f4f3ef;
+  --color-faded: #82828f;
+  --color-hairline: #26262f;
 
-  /* data spectrum: flow → agent → insight */
-  --color-clay: #67e8f9;
-  --color-clay-deep: #22d3ee;
-  --color-violet: #a78bfa;
-  --color-amber: #fbbf24;
-  --color-moss: #7ee787;
+  /* the signal shifts hue as it resolves */
+  --color-clay: #64f0c8;
+  --color-clay-deep: #3fd9ad;
+  --color-violet: #b195ff;
+  --color-amber: #ffc966;
+  --color-moss: #64f0c8;
 
-  /* panes (chat, sims) */
-  --color-pane: #0c1120;
-  --color-pane-edge: #1e2740;
-  --color-pane-text: #e9edf5;
-  --color-pane-dim: #6b7690;
+  --color-pane: #101014;
+  --color-pane-edge: #2a2a34;
+  --color-pane-text: #f4f3ef;
+  --color-pane-dim: #75757f;
 
-  --font-display: "Bricolage Grotesque", "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Syne", "Inter", sans-serif;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
 }
 
 html {
@@ -36,6 +34,7 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -43,49 +42,34 @@ body {
   color: var(--color-paper);
 }
 
-/* scroll-reveal */
 .reveal {
   opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transform: translateY(26px);
+  transition: opacity 0.9s cubic-bezier(0.22, 0.8, 0.3, 1), transform 0.9s cubic-bezier(0.22, 0.8, 0.3, 1);
 }
 .reveal.in {
   opacity: 1;
   transform: none;
 }
 
-/* pipeline rail packets */
-@keyframes packet {
-  0% {
-    top: -2%;
-    opacity: 0;
+/* chapter eyebrow ticks in like a meter */
+@keyframes tick {
+  from {
+    width: 0;
   }
-  6% {
-    opacity: 1;
-  }
-  94% {
-    opacity: 1;
-  }
-  100% {
-    top: 101%;
-    opacity: 0;
+  to {
+    width: 2.5rem;
   }
 }
-.packet {
-  animation: packet 9s linear infinite;
-}
-
-@keyframes nodepulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.35);
-  }
-  50% {
-    box-shadow: 0 0 0 7px rgba(103, 232, 249, 0);
-  }
-}
-.node-pulse {
-  animation: nodepulse 2.6s ease-in-out infinite;
+.tick::before {
+  content: "";
+  display: inline-block;
+  height: 2px;
+  width: 2.5rem;
+  margin-right: 0.75rem;
+  vertical-align: middle;
+  background: currentColor;
+  animation: tick 0.8s cubic-bezier(0.22, 0.8, 0.3, 1) both;
 }
 
 .caret::after {
@@ -108,8 +92,7 @@ body {
     transform: none;
     transition: none;
   }
-  .packet,
-  .node-pulse,
+  .tick::before,
   .caret::after {
     animation: none;
   }
