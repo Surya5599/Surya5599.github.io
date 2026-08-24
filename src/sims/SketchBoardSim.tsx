@@ -36,6 +36,8 @@ export default function SketchBoardSim() {
   const [slot, setSlot] = useState(1);
   const [msg, setMsg] = useState("READY");
   const [stick, setStick] = useState({ dx: 0, dy: 0 });
+  const [angle, setAngle] = useState({ rx: 48, rz: -14 });
+  const drag = useRef<{ x: number; y: number; rx: number; rz: number } | null>(null);
   const blink = useRef(true);
 
   const redraw = useCallback(() => {
@@ -152,17 +154,50 @@ export default function SketchBoardSim() {
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-pane-edge px-4 py-2 text-[11px] text-pane-dim">
         <span>arrows / wasd — joystick</span>
         <span>space — cycle mode</span>
+        <span>drag — rotate board</span>
         <span>drawings persist in EEPROM (localStorage)</span>
+        <button
+          onClick={() => setAngle({ rx: 48, rz: -14 })}
+          className="ml-auto cursor-pointer border border-pane-edge px-2 py-0.5 text-pane-text/70 hover:border-clay hover:text-pane-text"
+        >
+          reset view
+        </button>
       </div>
 
       <div
         ref={sceneRef}
         tabIndex={0}
         aria-label="SketchBoard breadboard. Use arrow keys to draw on the LCD."
-        className="min-h-0 flex-1 overflow-auto outline-none focus-visible:ring-1 focus-visible:ring-clay"
-        style={{ perspective: "1400px", background: "radial-gradient(ellipse at 50% 30%, #33312e, #1f1e1c)" }}
+        onPointerDown={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          drag.current = { x: e.clientX, y: e.clientY, rx: angle.rx, rz: angle.rz };
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          if (!drag.current) return;
+          const d = drag.current;
+          setAngle({
+            rx: Math.min(80, Math.max(5, d.rx - (e.clientY - d.y) * 0.3)),
+            rz: Math.min(75, Math.max(-75, d.rz - (e.clientX - d.x) * 0.3)),
+          });
+        }}
+        onPointerUp={() => (drag.current = null)}
+        onPointerCancel={() => (drag.current = null)}
+        className="min-h-0 flex-1 touch-none overflow-auto outline-none focus-visible:ring-1 focus-visible:ring-clay"
+        style={{
+          perspective: "1400px",
+          background: "radial-gradient(ellipse at 50% 30%, #33312e, #1f1e1c)",
+          cursor: drag.current ? "grabbing" : "grab",
+        }}
       >
-        <div className="mx-auto my-10 h-[430px] w-[760px]" style={{ transformStyle: "preserve-3d", transform: "rotateX(48deg) rotateZ(-14deg)" }}>
+        <div
+          className="mx-auto my-10 h-[430px] w-[760px]"
+          style={{
+            transformStyle: "preserve-3d",
+            transform: `rotateX(${angle.rx}deg) rotateZ(${angle.rz}deg)`,
+            transition: drag.current ? "none" : "transform 200ms ease-out",
+          }}
+        >
           {/* breadboard */}
           <div
             className="absolute inset-0 rounded-md"
