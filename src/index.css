@@ -1,23 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f0eee6;
-  --color-oat: #e9e6dc;
-  --color-linen: #f7f5ef;
-  --color-ink: #1f1d1a;
-  --color-faded: #6e6a60;
-  --color-hairline: #d9d5c9;
-  --color-clay: #c15f3c;
-  --color-clay-deep: #a34a2b;
-  --color-pane: #262624;
-  --color-pane-edge: #3a3835;
-  --color-pane-text: #ebe8e0;
-  --color-pane-dim: #8f8b82;
-  --color-moss: #5f7355;
+  /* deep engineering canvas */
+  --color-paper: #0a0e17;
+  --color-linen: #0f1524;
+  --color-oat: #131b2e;
+  --color-ink: #e9edf5;
+  --color-faded: #8a93a8;
+  --color-hairline: #1f2940;
 
-  --font-display: "Instrument Serif", Georgia, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  /* data spectrum: flow → agent → insight */
+  --color-clay: #67e8f9;
+  --color-clay-deep: #22d3ee;
+  --color-violet: #a78bfa;
+  --color-amber: #fbbf24;
+  --color-moss: #7ee787;
+
+  /* panes (chat, sims) */
+  --color-pane: #0c1120;
+  --color-pane-edge: #1e2740;
+  --color-pane-text: #e9edf5;
+  --color-pane-dim: #6b7690;
+
+  --font-display: "Bricolage Grotesque", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 html {
@@ -36,12 +43,56 @@ body {
   color: var(--color-paper);
 }
 
+/* scroll-reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* pipeline rail packets */
+@keyframes packet {
+  0% {
+    top: -2%;
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  94% {
+    opacity: 1;
+  }
+  100% {
+    top: 101%;
+    opacity: 0;
+  }
+}
+.packet {
+  animation: packet 9s linear infinite;
+}
+
+@keyframes nodepulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(103, 232, 249, 0);
+  }
+}
+.node-pulse {
+  animation: nodepulse 2.6s ease-in-out infinite;
+}
+
 .caret::after {
   content: "▋";
   animation: blink 1.1s steps(1) infinite;
   color: var(--color-clay);
 }
-
 @keyframes blink {
   50% {
     opacity: 0;
@@ -52,6 +103,13 @@ body {
   html {
     scroll-behavior: auto;
   }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .packet,
+  .node-pulse,
   .caret::after {
     animation: none;
   }

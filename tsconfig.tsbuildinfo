@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/chat.tsx","./src/simmodal.tsx","./src/main.tsx","./src/data/profile.ts","./src/sims/rshellsim.tsx","./src/sims/sketchboardsim.tsx","./src/sims/index.tsx","./src/sims/rshell.ts"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/chat.tsx","./src/heroflow.tsx","./src/simmodal.tsx","./src/main.tsx","./src/data/profile.ts","./src/sims/rshellsim.tsx","./src/sims/sketchboardsim.tsx","./src/sims/index.tsx","./src/sims/rshell.ts"],"version":"5.9.3"}
