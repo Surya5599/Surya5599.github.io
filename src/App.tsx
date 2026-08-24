@@ -1,334 +1,334 @@
-import { useEffect, useRef, useState } from "react";
-import { profile, skills, experience, toolbox, education, type Skill } from "./data/profile";
-import Chat from "./Chat";
-import SimModal from "./SimModal";
-import { SIMS } from "./sims";
-import HeroFlow from "./HeroFlow";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { profile } from "./data/profile";
+import Orb, { type OrbState } from "./Orb";
+import { WidgetGrid, type Widget } from "./jarvis/widgets";
+import { localAnswer, greetingFor } from "./jarvis/local";
 
-/* ---------- animation helpers ---------- */
+type Mode = "chat" | "voice";
+type Phase = "asleep" | "mode" | "persona" | "live";
+type Msg = { role: "user" | "model"; text: string };
 
-function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          el.classList.add("in");
-          io.disconnect();
-        }
-      },
-      { threshold: 0.15 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className="reveal" style={{ transitionDelay: `${delay}ms` }}>
-      {children}
-    </div>
-  );
-}
-
-function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      el.textContent = to.toLocaleString() + suffix;
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        const t0 = performance.now();
-        const dur = 1400;
-        const tick = (t: number) => {
-          const p = Math.min(1, (t - t0) / dur);
-          const eased = 1 - Math.pow(1 - p, 3);
-          el.textContent = Math.round(to * eased).toLocaleString() + suffix;
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      },
-      { threshold: 0.5 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [to, suffix]);
-  return <span ref={ref}>0{suffix}</span>;
-}
-
-/* ---------- pipeline stage scaffolding ---------- */
-
-function Stage({
-  num,
-  name,
-  title,
-  aside,
-  id,
-  children,
-}: {
-  num: string;
-  name: string;
-  title: string;
-  aside?: string;
-  id: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className="relative pb-24 pl-8 sm:pl-16">
-      <span className="node-pulse absolute -left-[7px] top-1 h-[15px] w-[15px] rounded-full border-2 border-clay bg-paper" />
-      <Reveal>
-        <p className="font-mono text-xs tracking-widest text-clay">
-          stage {num} · {name}
-        </p>
-        <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-4xl font-medium sm:text-5xl">{title}</h2>
-          {aside && <span className="font-mono text-xs text-faded">{aside}</span>}
-        </div>
-      </Reveal>
-      <div className="mt-10">{children}</div>
-    </section>
-  );
-}
-
-/* ---------- project cards ---------- */
-
-const STATUS_STYLE: Record<Skill["status"], string> = {
-  active: "text-moss border-moss/40",
-  shipped: "text-clay border-clay/40",
-  archived: "text-faded border-hairline",
-};
-
-function ProjectCard({ skill, index }: { skill: Skill; index: number }) {
-  const [open, setOpen] = useState(false);
-  const [simOpen, setSimOpen] = useState(false);
-  const sim = SIMS[skill.slug];
-  return (
-    <Reveal delay={(index % 2) * 90}>
-      <article className="group h-full rounded-xl border border-hairline bg-linen p-6 transition-all duration-300 hover:-translate-y-1 hover:border-clay/50 hover:shadow-[0_12px_40px_-18px_rgba(103,232,249,0.35)]">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-2xl font-medium">{skill.name}</h3>
-          <span className={`shrink-0 rounded-full border px-2.5 py-0.5 font-mono text-[10px] ${STATUS_STYLE[skill.status]}`}>
-            {skill.status}
-          </span>
-        </div>
-        <p className="mt-3 leading-relaxed text-ink/80">{skill.description}</p>
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {skill.tools.map((t) => (
-            <span key={t} className="rounded-md bg-oat px-2 py-0.5 font-mono text-[11px] text-faded">
-              {t}
-            </span>
-          ))}
-        </div>
-        {open && <p className="mt-4 text-sm leading-relaxed text-ink/70">{skill.detail}</p>}
-        <div className="mt-5 flex flex-wrap items-center gap-5 font-mono text-xs">
-          {sim && (
-            <button
-              onClick={() => setSimOpen(true)}
-              className="cursor-pointer rounded-md bg-clay/10 px-3 py-1.5 text-clay transition-colors hover:bg-clay/20"
-            >
-              ▶ run simulation
-            </button>
-          )}
-          <button onClick={() => setOpen((o) => !o)} className="cursor-pointer text-faded hover:text-ink">
-            {open ? "less" : "more"}
-          </button>
-          {skill.repo && (
-            <a
-              href={skill.repo}
-              target="_blank"
-              rel="noreferrer"
-              className="ml-auto text-faded underline decoration-hairline underline-offset-4 hover:text-clay"
-            >
-              github ↗
-            </a>
-          )}
-        </div>
-        {sim && simOpen && (
-          <SimModal title={sim.title} onClose={() => setSimOpen(false)}>
-            <sim.component />
-          </SimModal>
-        )}
-      </article>
-    </Reveal>
-  );
-}
-
-/* ---------- app ---------- */
-
-const STATS = [
-  { to: 4, suffix: "+", label: "years in data engineering" },
-  { to: 10000, suffix: "+", label: "daily users on my dashboards" },
-  { to: 500, suffix: "+", label: "reports migrated off legacy" },
-  { to: 16, suffix: "×", label: "data retrieval speedup" },
+const SUGGESTIONS = [
+  "Build me a dashboard of his career",
+  "Show his AI work",
+  "What can I play with?",
+  "What's his stack?",
+  "How do I reach him?",
 ];
 
-export default function App() {
-  const [progress, setProgress] = useState(0);
+const PERSONAS = [
+  { key: "recruiter", label: "I'm a recruiter" },
+  { key: "engineer", label: "I'm an engineer" },
+  { key: "curious", label: "Just curious" },
+];
 
-  useEffect(() => {
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? window.scrollY / max : 0);
+// minimal Web Speech typings (not in the default TS DOM lib)
+type SpeechAlt = { transcript: string };
+type SpeechResult = { isFinal: boolean; 0: SpeechAlt };
+type SpeechEvent = { results: ArrayLike<SpeechResult> };
+type Recognizer = {
+  lang: string;
+  interimResults: boolean;
+  onstart: (() => void) | null;
+  onresult: ((e: SpeechEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+function speechRecognitionCtor(): (new () => Recognizer) | null {
+  const w = window as unknown as Record<string, unknown>;
+  return (w.SpeechRecognition as new () => Recognizer) ?? (w.webkitSpeechRecognition as new () => Recognizer) ?? null;
+}
+
+export default function App() {
+  const [phase, setPhase] = useState<Phase>("asleep");
+  const [mode, setMode] = useState<Mode>("chat");
+  const [orb, setOrb] = useState<OrbState>("asleep");
+  const [persona, setPersona] = useState<string | null>(null);
+  const [reply, setReply] = useState("");
+  const [widgets, setWidgets] = useState<Widget[]>([]);
+  const [history, setHistory] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [interim, setInterim] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [offline, setOffline] = useState(false);
+  const recRef = useRef<Recognizer | null>(null);
+  const voiceOK = speechRecognitionCtor() !== null;
+
+  const speak = useCallback(
+    (text: string) => {
+      if (mode !== "voice" || !("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.04;
+      u.onstart = () => setOrb("speaking");
+      u.onend = () => setOrb("idle");
+      window.speechSynthesis.speak(u);
+    },
+    [mode],
+  );
+
+  const deliver = useCallback(
+    (r: { reply: string; widgets: Widget[] }) => {
+      setReply(r.reply);
+      setWidgets(r.widgets);
+      setHistory((h) => [...h, { role: "model", text: r.reply }]);
+      setOrb("idle");
+      speak(r.reply);
+    },
+    [speak],
+  );
+
+  const ask = useCallback(
+    async (q: string) => {
+      const question = q.trim();
+      if (!question || busy) return;
+      setInput("");
+      setInterim("");
+      setBusy(true);
+      setOrb("thinking");
+      const msgs = [...history, { role: "user" as const, text: question }];
+      setHistory(msgs);
+      try {
+        const res = await fetch("/api/jarvis", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: msgs.slice(-10), persona }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        if (!data.reply) throw new Error("empty");
+        deliver({ reply: data.reply, widgets: Array.isArray(data.widgets) ? data.widgets : [] });
+        setOffline(false);
+      } catch {
+        setOffline(true);
+        deliver(localAnswer(question, persona));
+      } finally {
+        setBusy(false);
+      }
+    },
+    [busy, history, persona, deliver],
+  );
+
+  const listen = useCallback(() => {
+    const Ctor = speechRecognitionCtor();
+    if (!Ctor || busy) return;
+    window.speechSynthesis?.cancel();
+    const rec = new Ctor();
+    recRef.current = rec;
+    rec.lang = "en-US";
+    rec.interimResults = true;
+    rec.onstart = () => setOrb("listening");
+    rec.onresult = (e: SpeechEvent) => {
+      let final = "";
+      let inter = "";
+      for (const r of Array.from(e.results)) {
+        if (r.isFinal) final += r[0].transcript;
+        else inter += r[0].transcript;
+      }
+      setInterim(inter);
+      if (final) {
+        rec.stop();
+        ask(final);
+      }
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    rec.onerror = () => setOrb("idle");
+    rec.onend = () => {
+      setInterim("");
+      setOrb((o) => (o === "listening" ? "idle" : o));
+    };
+    rec.start();
+  }, [ask, busy]);
+
+  function wake() {
+    if (phase !== "asleep") return;
+    setPhase("mode");
+    setOrb("idle");
+  }
+
+  function chooseMode(m: Mode) {
+    setMode(m);
+    setPhase("persona");
+    setReply("Online. Who am I speaking with?");
+    if (m === "voice") {
+      const u = new SpeechSynthesisUtterance("Online. Who am I speaking with?");
+      u.onstart = () => setOrb("speaking");
+      u.onend = () => setOrb("idle");
+      window.speechSynthesis?.speak(u);
+    }
+  }
+
+  function choosePersona(key: string, label: string) {
+    setPersona(key);
+    setPhase("live");
+    setHistory([{ role: "user", text: label }]);
+    deliver(greetingFor(key));
+  }
+
+  useEffect(() => () => window.speechSynthesis?.cancel(), []);
+
+  const live = phase === "live";
 
   return (
-    <>
-      {/* top bar */}
-      <nav className="fixed inset-x-0 top-0 z-40 border-b border-hairline bg-paper/85 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center gap-6 px-5 py-3 sm:px-8">
-          <a href="#top" className="font-display text-lg font-medium">
-            Surya Singh
-          </a>
-          <div className="ml-auto flex gap-5 font-mono text-xs text-faded">
-            <a className="hover:text-clay" href="#experience">experience</a>
-            <a className="hover:text-clay" href="#projects">projects</a>
-            <a className="hover:text-clay" href="#query">ask ai</a>
-            <a className="hover:text-clay" href={profile.github} target="_blank" rel="noreferrer">github</a>
-          </div>
-        </div>
-        <div
-          className="h-[2px] origin-left bg-gradient-to-r from-clay via-violet to-amber transition-transform duration-150"
-          style={{ transform: `scaleX(${progress})` }}
-        />
-      </nav>
+    <div className="flex min-h-dvh flex-col">
+      {/* HUD chrome */}
+      <header className="flex items-center justify-between px-5 py-4 font-mono text-[11px] text-faded sm:px-8">
+        <span>
+          <span className="text-clay">SAGE</span> — {profile.name.toLowerCase()}'s ai
+        </span>
+        <span className="hidden sm:block">sys: {live ? (offline ? "local core" : "gemini core") : "standby"}</span>
+        <a className="transition-colors hover:text-ink" href={profile.github} target="_blank" rel="noreferrer">
+          github ↗
+        </a>
+      </header>
 
-      <main id="top" className="mx-auto max-w-5xl px-5 pt-24 sm:px-8">
-        {/* hero */}
-        <header className="pb-20 pt-12 sm:pt-20">
-          <Reveal>
-            <p className="font-mono text-xs tracking-widest text-faded">
-              {profile.location.toLowerCase()} · {profile.role.toLowerCase()} · agentic ai
+      <main className={`mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-5 ${live ? "" : "justify-center"}`}>
+        {/* the core */}
+        <button
+          onClick={wake}
+          disabled={phase !== "asleep"}
+          aria-label={phase === "asleep" ? "Wake SAGE" : "SAGE core"}
+          className={`relative transition-all duration-700 ${phase === "asleep" ? "cursor-pointer hover:scale-105" : ""}`}
+        >
+          <Orb state={orb} size={live ? 170 : 280} />
+          {phase === "asleep" && (
+            <span className="absolute inset-0 flex items-center justify-center font-display text-sm font-semibold uppercase tracking-[0.35em] text-ink/90">
+              wake
+            </span>
+          )}
+        </button>
+
+        {phase === "asleep" && (
+          <div className="fadein mt-6 text-center">
+            <h1 className="font-display text-4xl font-bold tracking-wide">S.A.G.E.</h1>
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-faded">
+              Surya's Agentic Guide & Engineer. It knows his work, builds dashboards on request,
+              and runs his demos. Click the core.
             </p>
-            <h1 className="mt-5 font-display text-5xl font-medium leading-[1.02] sm:text-7xl">
-              Raw data in.
-              <br />
-              <span className="bg-gradient-to-r from-clay via-violet to-amber bg-clip-text text-transparent">
-                Decisions out.
-              </span>
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink/80">{profile.tagline}</p>
-          </Reveal>
-          <Reveal delay={150}>
-            <div className="mt-10 h-56 overflow-hidden rounded-xl border border-hairline bg-linen sm:h-64">
-              <HeroFlow />
-            </div>
-            <p className="mt-2 text-right font-mono text-[10px] text-faded">
-              live: chaos → agent → ordered streams
-            </p>
-          </Reveal>
-          <Reveal delay={250}>
-            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {STATS.map((s) => (
-                <div key={s.label} className="rounded-xl border border-hairline bg-linen p-4">
-                  <p className="font-display text-3xl font-medium text-clay">
-                    <CountUp to={s.to} suffix={s.suffix} />
-                  </p>
-                  <p className="mt-1 text-xs leading-snug text-faded">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </header>
-
-        {/* pipeline */}
-        <div className="relative">
-          {/* rail */}
-          <div className="absolute bottom-0 left-0 top-0 w-px bg-hairline" aria-hidden>
-            <span className="packet absolute -left-[2px] h-[5px] w-[5px] rounded-full bg-clay" />
-            <span className="packet absolute -left-[2px] h-[5px] w-[5px] rounded-full bg-violet" style={{ animationDelay: "3s" }} />
-            <span className="packet absolute -left-[2px] h-[5px] w-[5px] rounded-full bg-amber" style={{ animationDelay: "6s" }} />
           </div>
+        )}
 
-          <Stage num="01" name="transform" title="Experience" aside="4+ years · 2 companies" id="experience">
-            <div className="space-y-6">
-              {experience.map((job, i) => (
-                <Reveal key={job.company + job.period} delay={i * 80}>
-                  <article className="rounded-xl border border-hairline bg-linen p-6 transition-colors hover:border-clay/40">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h3 className="font-display text-2xl font-medium">
-                        {job.role} <span className="text-faded">@ {job.company}</span>
-                      </h3>
-                      <span className="font-mono text-xs text-faded">{job.period}</span>
-                    </div>
-                    <ul className="mt-4 space-y-2.5">
-                      {job.bullets.map((b) => (
-                        <li key={b.slice(0, 32)} className="flex gap-3 leading-relaxed text-ink/80">
-                          <span className="mt-[9px] h-1 w-3 shrink-0 rounded-full bg-clay/50" aria-hidden />
-                          <span>{b}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </article>
-                </Reveal>
-              ))}
-              <Reveal>
-                <p className="font-mono text-xs text-faded">{education}</p>
-              </Reveal>
+        {phase === "mode" && (
+          <div className="fadein mt-8 flex flex-col items-center gap-4">
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-faded">choose interface</p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => chooseMode("chat")}
+                className="hud cursor-pointer px-7 py-3.5 font-display text-sm font-semibold uppercase tracking-widest text-clay transition-transform hover:scale-105"
+              >
+                💬 Chat
+              </button>
+              <button
+                onClick={() => chooseMode("voice")}
+                disabled={!voiceOK}
+                className="hud cursor-pointer px-7 py-3.5 font-display text-sm font-semibold uppercase tracking-widest text-moss transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                🎙 Voice
+              </button>
             </div>
-          </Stage>
+            {!voiceOK && <p className="font-mono text-[11px] text-faded">voice needs a Chromium-based browser</p>}
+          </div>
+        )}
 
-          <Stage num="02" name="load" title="Projects" aside={`${skills.length} shipped · 2 playable`} id="projects">
-            <div className="grid gap-5 sm:grid-cols-2">
-              {skills.map((s, i) => (
-                <ProjectCard key={s.slug} skill={s} index={i} />
-              ))}
-            </div>
-          </Stage>
+        {/* SAGE's spoken line */}
+        {(phase === "persona" || live) && reply && (
+          <p key={reply.slice(0, 24)} className="fadein mt-5 max-w-xl text-center text-[15px] leading-relaxed text-ink/90">
+            <span className="text-clay">◆ </span>
+            {reply}
+          </p>
+        )}
+        {interim && <p className="caret mt-2 font-mono text-sm text-moss">{interim}</p>}
+        {busy && <p className="caret mt-2 font-mono text-xs text-faded">assembling</p>}
 
-          <Stage num="03" name="serve" title="Toolbox" id="toolbox">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {Object.entries(toolbox).map(([group, items], i) => (
-                <Reveal key={group} delay={i * 70}>
-                  <div className="rounded-xl border border-hairline bg-linen p-5">
-                    <p className="font-mono text-xs tracking-widest text-clay">{group}</p>
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {items.map((t) => (
-                        <span key={t} className="rounded-md bg-oat px-2.5 py-1 text-sm text-ink/80">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </Stage>
+        {phase === "persona" && (
+          <div className="fadein mt-6 flex flex-wrap justify-center gap-3">
+            {PERSONAS.map((p) => (
+              <button
+                key={p.key}
+                onClick={() => choosePersona(p.key, p.label)}
+                className="hud cursor-pointer px-5 py-2.5 font-display text-xs font-semibold uppercase tracking-widest text-ink/90 transition-transform hover:scale-105"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
 
-          <Stage
-            num="04"
-            name="query"
-            title="Ask the pipeline"
-            aside="gemini · grounded in my real work"
-            id="query"
-          >
-            <Reveal>
-              <p className="max-w-2xl leading-relaxed text-ink/80">
-                An AI that knows everything on this page — my roles, projects, and stack — and
-                nothing it can't back up. Ask it what a recruiter would ask me.
-              </p>
-              <Chat />
-            </Reveal>
-          </Stage>
-        </div>
+        {/* the dashboard SAGE builds */}
+        {live && (
+          <div className="mt-8 w-full pb-40">
+            <WidgetGrid key={history.length} widgets={widgets} />
+          </div>
+        )}
       </main>
 
-      <footer className="border-t border-hairline">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-1 px-5 py-8 font-mono text-xs text-faded sm:px-8">
-          <span>© {new Date().getFullYear()} {profile.name}</span>
-          <a className="hover:text-clay" href={`mailto:${profile.email}`}>{profile.email}</a>
-          <span className="ml-auto">vite + react · netlify · supabase</span>
+      {/* command dock */}
+      {live && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-paper/90 backdrop-blur">
+          <div className="mx-auto max-w-4xl px-5 py-3.5">
+            <div className="flex flex-wrap gap-2 pb-2.5">
+              {SUGGESTIONS.map((sug) => (
+                <button
+                  key={sug}
+                  onClick={() => ask(sug)}
+                  className="cursor-pointer rounded-full border border-hairline px-3 py-1.5 font-mono text-[11px] text-faded transition-colors hover:border-clay hover:text-ink"
+                >
+                  {sug}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-3">
+              {mode === "voice" ? (
+                <button
+                  onClick={listen}
+                  disabled={busy}
+                  className={`flex-1 cursor-pointer rounded-lg py-3 font-display text-sm font-bold uppercase tracking-[0.25em] transition-colors ${
+                    orb === "listening" ? "bg-moss/20 text-moss" : "bg-clay/15 text-clay hover:bg-clay/25"
+                  } disabled:opacity-40`}
+                >
+                  {orb === "listening" ? "listening…" : "🎙 tap to speak"}
+                </button>
+              ) : (
+                <form
+                  className="flex flex-1 items-center gap-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    ask(input);
+                  }}
+                >
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask SAGE anything about Surya"
+                    aria-label="Ask SAGE"
+                    className="w-full rounded-lg border border-hairline bg-linen px-4 py-3 text-sm placeholder:text-faded focus:border-clay focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={busy || !input.trim()}
+                    className="cursor-pointer rounded-lg bg-clay px-5 py-3 font-display text-sm font-bold uppercase tracking-widest text-paper disabled:opacity-40"
+                  >
+                    run
+                  </button>
+                </form>
+              )}
+              <button
+                onClick={() => {
+                  window.speechSynthesis?.cancel();
+                  setMode((m) => (m === "chat" ? "voice" : "chat"));
+                }}
+                disabled={!voiceOK}
+                title="Switch chat/voice"
+                className="cursor-pointer rounded-lg border border-hairline px-3.5 py-3 text-sm text-faded transition-colors hover:border-clay hover:text-ink disabled:opacity-30"
+              >
+                {mode === "chat" ? "🎙" : "💬"}
+              </button>
+            </div>
+          </div>
         </div>
-      </footer>
-    </>
+      )}
+    </div>
   );
 }

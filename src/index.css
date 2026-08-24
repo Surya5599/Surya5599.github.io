@@ -1,30 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  /* deep engineering canvas */
-  --color-paper: #0a0e17;
-  --color-linen: #0f1524;
-  --color-oat: #131b2e;
-  --color-ink: #e9edf5;
-  --color-faded: #8a93a8;
-  --color-hairline: #1f2940;
+  --color-paper: #060a12;
+  --color-linen: #0b1220;
+  --color-oat: #101a2e;
+  --color-ink: #e6f2f8;
+  --color-faded: #7d93a8;
+  --color-hairline: #1c2c44;
 
-  /* data spectrum: flow → agent → insight */
-  --color-clay: #67e8f9;
-  --color-clay-deep: #22d3ee;
-  --color-violet: #a78bfa;
-  --color-amber: #fbbf24;
-  --color-moss: #7ee787;
+  --color-clay: #58e6ff;
+  --color-clay-deep: #2fd4f2;
+  --color-violet: #9d8cff;
+  --color-amber: #ffc76a;
+  --color-moss: #6ef2b0;
 
-  /* panes (chat, sims) */
-  --color-pane: #0c1120;
-  --color-pane-edge: #1e2740;
-  --color-pane-text: #e9edf5;
-  --color-pane-dim: #6b7690;
+  --color-pane: #081020;
+  --color-pane-edge: #1c2c44;
+  --color-pane-text: #e6f2f8;
+  --color-pane-dim: #6b8096;
 
-  --font-display: "Bricolage Grotesque", "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Rajdhani", "Inter", sans-serif;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
 }
 
 html {
@@ -32,10 +29,14 @@ html {
 }
 
 body {
-  background: var(--color-paper);
+  background:
+    radial-gradient(1100px 700px at 50% 42%, rgba(88, 230, 255, 0.07), transparent 60%),
+    radial-gradient(900px 900px at 85% 90%, rgba(157, 140, 255, 0.05), transparent 60%),
+    var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -43,49 +44,71 @@ body {
   color: var(--color-paper);
 }
 
-/* scroll-reveal */
-.reveal {
-  opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+/* HUD panel: glass + corner brackets */
+.hud {
+  position: relative;
+  background: rgba(11, 18, 32, 0.72);
+  border: 1px solid var(--color-hairline);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
 }
-.reveal.in {
-  opacity: 1;
-  transform: none;
+.hud::before,
+.hud::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--color-clay);
+  opacity: 0.75;
+}
+.hud::before {
+  top: -1px;
+  left: -1px;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 10px;
+}
+.hud::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: 10px;
 }
 
-/* pipeline rail packets */
-@keyframes packet {
-  0% {
-    top: -2%;
+@keyframes flyin {
+  from {
     opacity: 0;
+    transform: translateY(18px) scale(0.96);
   }
-  6% {
+  to {
     opacity: 1;
-  }
-  94% {
-    opacity: 1;
-  }
-  100% {
-    top: 101%;
-    opacity: 0;
+    transform: none;
   }
 }
-.packet {
-  animation: packet 9s linear infinite;
+.flyin {
+  animation: flyin 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
 }
 
-@keyframes nodepulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.35);
-  }
-  50% {
-    box-shadow: 0 0 0 7px rgba(103, 232, 249, 0);
+@keyframes barfill {
+  from {
+    width: 0;
   }
 }
-.node-pulse {
-  animation: nodepulse 2.6s ease-in-out infinite;
+.barfill {
+  animation: barfill 1s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fadein {
+  animation: fadein 0.6s ease both;
 }
 
 .caret::after {
@@ -103,13 +126,9 @@ body {
   html {
     scroll-behavior: auto;
   }
-  .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-  .packet,
-  .node-pulse,
+  .flyin,
+  .barfill,
+  .fadein,
   .caret::after {
     animation: none;
   }
