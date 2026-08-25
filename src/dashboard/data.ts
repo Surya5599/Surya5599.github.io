@@ -10,14 +10,27 @@ export const KPIS = [
   { label: "data retrieval speedup", value: 16, suffix: "×" },
 ];
 
-// career timeline (fractional years for the gantt)
-export type Span = { job: Job; start: number; end: number };
+// career timeline (fractional years for the gantt); one span per company
+export type Span = { company: string; role: string; period: string; jobs: Job[]; start: number; end: number };
 export const CAREER_START = 2021;
 export const CAREER_END = 2026.75;
 export const SPANS: Span[] = [
-  { job: experience[2], start: 2021.25, end: 2021.95 }, // ETL Developer
-  { job: experience[1], start: 2022.0, end: 2024.95 }, // Data Engineer, Infosys
-  { job: experience[0], start: 2024.92, end: CAREER_END }, // Data Engineer, Oliver Wight
+  {
+    company: "Infosys",
+    role: "ETL Developer → Data Engineer",
+    period: "apr 2021 – dec 2024",
+    jobs: [experience[1], experience[2]], // newest first
+    start: 2021.25,
+    end: 2024.95,
+  },
+  {
+    company: "Oliver Wight",
+    role: "Data Engineer",
+    period: experience[0].period,
+    jobs: [experience[0]],
+    start: 2024.92,
+    end: CAREER_END,
+  },
 ];
 
 // projects by status

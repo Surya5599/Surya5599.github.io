@@ -34,7 +34,7 @@ export function Gantt({ selected, onSelect }: { selected: number | null; onSelec
   const years = [];
   for (let y = CAREER_START; y <= Math.floor(CAREER_END); y++) years.push(y);
   const x = (v: number) => LEFT + ((v - CAREER_START) / (CAREER_END - CAREER_START)) * (W - LEFT - 8);
-  const colors = ["var(--color-violet)", "var(--color-clay)", "var(--color-moss)"];
+  const colors = ["var(--color-clay)", "var(--color-moss)", "var(--color-violet)"];
 
   return (
     <svg viewBox={`0 0 ${W} ${SPANS.length * ROW + 34}`} className="w-full">
@@ -50,7 +50,7 @@ export function Gantt({ selected, onSelect }: { selected: number | null; onSelec
         const isSel = selected === i;
         const barW = Math.max(8, x(s.end) - x(s.start));
         // two-line label: company on top, role below; place inside → right → left
-        const labelW = Math.max(s.job.company.length * 6.8, s.job.role.length * 5.8);
+        const labelW = Math.max(s.company.length * 6.8, s.role.length * 5.8);
         const place = labelW + 20 <= barW ? "in" : x(s.end) + 10 + labelW <= W ? "right" : "left";
         return (
           <g key={i} onClick={() => onSelect(i)} className="cursor-pointer">
@@ -74,7 +74,7 @@ export function Gantt({ selected, onSelect }: { selected: number | null; onSelec
               fill="var(--color-ink)"
             >
               <tspan y={i * ROW + ROW / 2 - 3} fontSize="12" fontWeight="800">
-                {s.job.company}
+                {s.company}
               </tspan>
               <tspan
                 x={place === "in" ? x(s.start) + 12 : place === "right" ? x(s.end) + 10 : x(s.start) - 10}
@@ -84,7 +84,7 @@ export function Gantt({ selected, onSelect }: { selected: number | null; onSelec
                 fill={place === "in" ? "var(--color-ink)" : "var(--color-faded)"}
                 opacity={place === "in" ? 0.75 : 1}
               >
-                {s.job.role}
+                {s.role}
               </tspan>
             </text>
           </g>

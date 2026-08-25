@@ -130,7 +130,7 @@ function Overview({ go }: { go: (v: View) => void }) {
           <Gantt selected={role} onSelect={(i) => setRole(role === i ? null : i)} />
           {role !== null && (
             <p className="mt-2 rounded-xl border-2 border-ink bg-oat p-3 text-sm leading-relaxed">
-              <strong>{SPANS[role].job.role} @ {SPANS[role].job.company}</strong> — {SPANS[role].job.bullets[0]}
+              <strong>{SPANS[role].role} @ {SPANS[role].company}</strong> — {SPANS[role].jobs[0].bullets[0]}
             </p>
           )}
         </Card>
@@ -163,8 +163,8 @@ function Overview({ go }: { go: (v: View) => void }) {
 }
 
 function Experience() {
-  const [sel, setSel] = useState(2); // newest first in SPANS index 2
-  const job = SPANS[sel].job;
+  const [sel, setSel] = useState(SPANS.length - 1); // newest span
+  const span = SPANS[sel];
   return (
     <div className="grid gap-4">
       <Card title="timeline — click a bar to inspect">
@@ -179,24 +179,35 @@ function Experience() {
                 onClick={() => setSel(i)}
                 className={`pill block w-full cursor-pointer px-4 py-2.5 text-left text-sm font-bold ${sel === i ? "bg-clay text-white" : "bg-linen"}`}
               >
-                {s.job.company}
+                {s.company}
                 <span className={`block text-[11px] font-semibold ${sel === i ? "text-white/80" : "text-faded"}`}>
-                  {s.job.role} · {s.job.period}
+                  {s.role} · {s.period}
                 </span>
               </button>
             ))}
           </div>
           <p className="mt-4 text-xs font-semibold text-faded">{education}</p>
         </Card>
-        <Card title={`${job.role} @ ${job.company}`} aside={<span className="text-[11px] font-bold text-faded">{job.period}</span>}>
-          <ul className="space-y-3">
-            {job.bullets.map((b) => (
-              <li key={b.slice(0, 32)} className="flex gap-2.5 text-[15px] leading-relaxed text-ink/85">
-                <span className="mt-2 h-2 w-2 shrink-0 rounded-full border border-ink bg-clay" />
-                <span>{b}</span>
-              </li>
+        <Card title={`${span.role} @ ${span.company}`} aside={<span className="text-[11px] font-bold text-faded">{span.period}</span>}>
+          <div className="space-y-5">
+            {span.jobs.map((job) => (
+              <div key={job.role + job.period}>
+                {span.jobs.length > 1 && (
+                  <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wider text-faded">
+                    {job.role} · {job.period}
+                  </p>
+                )}
+                <ul className="space-y-3">
+                  {job.bullets.map((b) => (
+                    <li key={b.slice(0, 32)} className="flex gap-2.5 text-[15px] leading-relaxed text-ink/85">
+                      <span className="mt-2 h-2 w-2 shrink-0 rounded-full border border-ink bg-clay" />
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         </Card>
       </div>
     </div>
