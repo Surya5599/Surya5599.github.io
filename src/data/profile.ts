@@ -118,7 +118,7 @@ export const skills: Skill[] = [
     description:
       "Booking and maintenance system for ship schedules, reservations, and crews.",
     tools: ["Java", "Swing", "PostgreSQL"],
-    status: "shipped",
+    status: "college project",
     detail:
       "Java GUI over a normalized PostgreSQL schema — ships, captains, cruises, customers, reservations, and maintenance requests, seeded from CSV fixtures.",
     repo: "https://github.com/Surya5599/ShipBookingSystem",
@@ -129,7 +129,7 @@ export const skills: Skill[] = [
     description:
       "Reads math equations off the screen with OCR, evaluates them, and clicks the right answer.",
     tools: ["Python", "pytesseract", "regex"],
-    status: "shipped",
+    status: "college project",
     detail:
       "Pipeline: screen capture → OCR → regex validation of the parsed expression → evaluation → automated click on the matching option. There's a demo video on the repo.",
     repo: "https://github.com/Surya5599/OCR_equationSolver",

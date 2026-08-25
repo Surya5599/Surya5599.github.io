@@ -32,7 +32,7 @@ export const STATUS_COLOR: Record<Status, string> = {
 export const statusCounts = STATUS_ORDER.map((s) => ({
   status: s,
   count: skills.filter((k) => k.status === s).length,
-}));
+})).filter((s) => s.count > 0);
 
 // technology frequency across personal projects
 export const techFrequency = (() => {
