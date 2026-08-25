@@ -6,7 +6,7 @@ export type Skill = {
   name: string;
   description: string;
   tools: string[];
-  status: "active" | "under construction" | "shipped" | "college project";
+  status: "active" | "building" | "shipped" | "college project";
   detail: string;
   repo?: string;
   link?: { label: string; url: string };
@@ -85,7 +85,7 @@ export const skills: Skill[] = [
     description:
       "Daily body-progress-photo app where small pods of friends keep each other accountable.",
     tools: ["React Native", "Expo", "TypeScript", "local-first"],
-    status: "under construction",
+    status: "building",
     detail:
       "Ghost-overlay camera for consistent angles, streak rings, invite-only pods over deep links, iMessage-style reaction thread, face blur for privacy. Local-first by design; personal timelapse playback built in.",
     repo: "https://github.com/Surya5599/gymshot",

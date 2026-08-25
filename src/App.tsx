@@ -196,7 +196,7 @@ function Projects() {
                       {s.name} {SIMS[s.slug] && <span className="text-clay-deep">▶</span>}
                     </td>
                     <td className="py-2.5 pr-3">
-                      <span className="rounded-full border-2 border-ink px-2 py-0.5 text-[10px] font-extrabold" style={{ background: STATUS_COLOR[s.status as Status] }}>
+                      <span className="whitespace-nowrap rounded-full border-2 border-ink px-2 py-0.5 text-[10px] font-extrabold" style={{ background: STATUS_COLOR[s.status as Status] }}>
                         {s.status}
                       </span>
                     </td>
