@@ -6,7 +6,7 @@ export type Skill = {
   name: string;
   description: string;
   tools: string[];
-  status: "active" | "under construction" | "shipped" | "archived";
+  status: "active" | "under construction" | "shipped" | "college project";
   detail: string;
   repo?: string;
   link?: { label: string; url: string };
@@ -139,7 +139,7 @@ export const skills: Skill[] = [
     name: "RShell",
     description: "A Unix-style shell written in C++ from fork() up.",
     tools: ["C++", "fork/execvp", "dup2", "composite pattern"],
-    status: "archived",
+    status: "college project",
     detail:
       "Command parsing with && || ; connectors, parenthesized precedence, input/output redirection, and pipes — modeled with a composite pattern over single, multiple, and symbol commands.",
     repo: "https://github.com/Surya5599/Shell",
@@ -149,7 +149,7 @@ export const skills: Skill[] = [
     name: "SketchBoard",
     description: "An Etch-a-Sketch built on an AVR microcontroller.",
     tools: ["Embedded C", "ADC", "EEPROM", "Nokia 5110 LCD"],
-    status: "archived",
+    status: "college project",
     detail:
       "Analog joystick sketching via ADC, a button-driven menu on a 16x02 LCD, and drawings persisted to EEPROM so saves survive power-off.",
     repo: "https://github.com/Surya5599/SketchBoard_Embedded_Systems_Project",
@@ -160,7 +160,7 @@ export const skills: Skill[] = [
     description:
       "EDA and modeling of US county-level election and COVID data.",
     tools: ["pandas", "scikit-learn", "geopandas", "k-means"],
-    status: "archived",
+    status: "college project",
     detail:
       "Exploratory analysis of demographics vs. voting outcomes, logistic regression to predict county winners, and k-means clustering with elbow detection.",
     repo: "https://github.com/Surya5599/Data_Analysis_Portfolio",
