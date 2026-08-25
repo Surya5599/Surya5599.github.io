@@ -29,7 +29,7 @@ export function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
 
 export function Gantt({ selected, onSelect }: { selected: number | null; onSelect: (i: number) => void }) {
   const W = 640;
-  const ROW = 34;
+  const ROW = 48;
   const LEFT = 8;
   const years = [];
   for (let y = CAREER_START; y <= Math.floor(CAREER_END); y++) years.push(y);
@@ -49,18 +49,17 @@ export function Gantt({ selected, onSelect }: { selected: number | null; onSelec
       {SPANS.map((s: Span, i) => {
         const isSel = selected === i;
         const barW = Math.max(8, x(s.end) - x(s.start));
-        const label = `${s.job.company} · ${s.job.role}`;
-        // ~6.6 units per char at 11.5px bold; place inside → right → left
-        const labelW = label.length * 6.6;
+        // two-line label: company on top, role below; place inside → right → left
+        const labelW = Math.max(s.job.company.length * 6.8, s.job.role.length * 5.8);
         const place = labelW + 20 <= barW ? "in" : x(s.end) + 10 + labelW <= W ? "right" : "left";
         return (
           <g key={i} onClick={() => onSelect(i)} className="cursor-pointer">
             <rect
               x={x(s.start)}
-              y={i * ROW + 4}
+              y={i * ROW + 10}
               width={barW}
-              height={ROW - 12}
-              rx={11}
+              height={ROW - 22}
+              rx={13}
               fill={colors[i % colors.length]}
               stroke="var(--color-ink)"
               strokeWidth={isSel ? 3 : 2}
@@ -69,15 +68,24 @@ export function Gantt({ selected, onSelect }: { selected: number | null; onSelec
               <animate attributeName="width" from="8" to={barW} dur="0.7s" fill="freeze" />
             </rect>
             <text
-              x={place === "in" ? x(s.start) + 10 : place === "right" ? x(s.end) + 10 : x(s.start) - 10}
+              x={place === "in" ? x(s.start) + 12 : place === "right" ? x(s.end) + 10 : x(s.start) - 10}
               textAnchor={place === "left" ? "end" : "start"}
-              y={i * ROW + ROW / 2 + 1}
-              fontSize="11.5"
-              fontWeight="800"
-              fill="var(--color-ink)"
               pointerEvents="none"
+              fill="var(--color-ink)"
             >
-              {label}
+              <tspan y={i * ROW + ROW / 2 - 3} fontSize="12" fontWeight="800">
+                {s.job.company}
+              </tspan>
+              <tspan
+                x={place === "in" ? x(s.start) + 12 : place === "right" ? x(s.end) + 10 : x(s.start) - 10}
+                y={i * ROW + ROW / 2 + 10}
+                fontSize="10"
+                fontWeight="600"
+                fill={place === "in" ? "var(--color-ink)" : "var(--color-faded)"}
+                opacity={place === "in" ? 0.75 : 1}
+              >
+                {s.job.role}
+              </tspan>
             </text>
           </g>
         );

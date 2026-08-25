@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { profile, education } from "./data/profile";
 import { KPIS, SPANS, skills, toolbox, techFrequency, allTechs, categoryCounts, STATUS_COLOR, type Skill, type Status } from "./dashboard/data";
 import { CountUp, Gantt, Donut, Bars } from "./dashboard/charts";
@@ -10,10 +10,57 @@ type View = "overview" | "experience" | "projects" | "skills" | "contact";
 const NAV: { key: View; label: string; icon: string }[] = [
   { key: "overview", label: "Overview", icon: "◫" },
   { key: "experience", label: "Experience", icon: "▤" },
-  { key: "projects", label: "Projects", icon: "✦" },
+  { key: "projects", label: "Personal Projects", icon: "✦" },
   { key: "skills", label: "Skills", icon: "❋" },
   { key: "contact", label: "Contact", icon: "✉" },
 ];
+
+// the photo subtly shifts and tilts toward the cursor — a gaze that follows
+function Avatar() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [t, setT] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    const onMove = (e: MouseEvent) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = ref.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width / 2);
+        const dy = e.clientY - (r.top + r.height / 2);
+        const d = Math.hypot(dx, dy) || 1;
+        // saturate quickly so even nearby movement reads as a glance
+        const k = Math.min(1, d / 260);
+        setT({ x: (dx / d) * k, y: (dy / d) * k });
+      });
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-ink shadow-[2px_2px_0_var(--color-ink)] lg:h-28 lg:w-28 lg:rounded-2xl lg:shadow-[4px_4px_0_var(--color-ink)]"
+      style={{ perspective: "300px" }}
+    >
+      <img
+        src="/surya.jpg"
+        alt="Surya Singh"
+        className="h-full w-full object-cover transition-transform duration-200 ease-out"
+        style={{
+          transform: `scale(1.12) translate(${t.x * 5}px, ${t.y * 4}px) rotateY(${t.x * 7}deg) rotateX(${-t.y * 5}deg)`,
+        }}
+      />
+    </div>
+  );
+}
 
 function Card({ title, aside, children, className = "" }: { title?: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
@@ -326,14 +373,10 @@ export default function App() {
     <div className="mx-auto flex min-h-dvh max-w-7xl flex-col gap-4 p-4 sm:p-6 lg:flex-row">
       {/* sidebar */}
       <aside className="hud flex shrink-0 flex-row items-center gap-1 self-start p-3 lg:sticky lg:top-6 lg:w-56 lg:flex-col lg:items-stretch lg:gap-1.5 lg:p-4 max-lg:w-full max-lg:overflow-x-auto">
-        <div className="mr-2 flex items-center gap-3 lg:mb-3 lg:mr-0">
-          <img
-            src="/surya.jpg"
-            alt="Surya Singh"
-            className="h-10 w-10 shrink-0 rounded-full border-2 border-ink object-cover shadow-[2px_2px_0_var(--color-ink)] lg:h-14 lg:w-14"
-          />
+        <div className="mr-2 flex items-center gap-3 lg:mb-3 lg:mr-0 lg:flex-col lg:items-center lg:gap-2.5 lg:pt-1 lg:text-center">
+          <Avatar />
           <div>
-            <p className="font-display text-xl font-black leading-none">
+            <p className="font-display text-xl font-black leading-none lg:text-2xl">
               {profile.name.split(" ")[0]}<span className="text-clay-deep">.</span>
             </p>
             <p className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.15em] text-faded lg:block">
@@ -367,7 +410,7 @@ export default function App() {
       {/* main */}
       <main className="min-w-0 flex-1">
         <header className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="font-display text-3xl font-black capitalize sm:text-4xl">{view}</h1>
+          <h1 className="font-display text-3xl font-black capitalize sm:text-4xl">{NAV.find((n) => n.key === view)?.label ?? view}</h1>
           <p className="text-xs font-semibold text-faded">
             {profile.role} · {profile.location} · every number here is real
           </p>
