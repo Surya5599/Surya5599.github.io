@@ -23,7 +23,7 @@ export const profile = {
   about: [
     "At Oliver Wight I build agentic data tooling: Claude-based skills that let business advisors query client data directly, an agent pipeline that categorizes incoming client data, runs the ETL, and flags quality issues with human-in-the-loop review (client onboarding went from weeks to days), and a LangChain + AgentScope help bot with persistent cross-session memory.",
     "Before that, three years at Infosys: Spotfire dashboards over SQL/Oracle/Redshift serving 10,000+ daily users, 500+ reports migrated off legacy systems with Python and REST automation, and two Rising Star awards along the way.",
-    "Nights and weekends I ship consumer products end to end — HabiCard (web, Chrome extension, iOS) and GymShot (React Native) — and I'm comfortable all the way down to the shell, the compiler, and the microcontroller.",
+    "Nights and weekends I ship products end to end — UniversalShelter.org (a universal-housing platform: Supabase, Netlify, Cloudflare, PayPal, mail and Google APIs), HabiCard (web, Chrome extension, iOS), and GymShot (React Native) — and I'm comfortable all the way down to the shell, the compiler, and the microcontroller.",
   ],
 };
 
@@ -100,6 +100,17 @@ export const skills: Skill[] = [
     detail:
       "One Supabase backend behind three surfaces. Streaks, weekly targets, journaling, shareable progress cards generated client-side, i18n, and Excel export. The extension is published on the Chrome Web Store.",
     repo: "https://github.com/Surya5599/habittracker",
+  },
+  {
+    slug: "universalshelter",
+    name: "UniversalShelter.org",
+    description:
+      "Actum — a platform building a global system of universal homes, so shelter can exist without rent, mortgage, or debt.",
+    tools: ["Frontend", "Backend", "Supabase", "Netlify", "Cloudflare", "PayPal API", "Mail API", "Google APIs"],
+    status: "active",
+    detail:
+      "Built and operated end to end as a solo developer: the frontend and backend, Supabase for database and auth, Netlify hosting and serverless functions, Cloudflare for DNS/CDN and security, PayPal API for donations, transactional email through a mailserver API, and Google API integrations.",
+    link: { label: "universalshelter.org", url: "https://universalshelter.org" },
   },
   {
     slug: "cruise-management",
