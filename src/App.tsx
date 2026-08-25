@@ -205,6 +205,20 @@ export default function App() {
 
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
 
+  // drill-down requests arriving from generated dashboards (sandboxed iframes)
+  const askRef = useRef(ask);
+  askRef.current = ask;
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      const d = e.data as { type?: string; query?: string };
+      if (d?.type !== "sage-drill" || typeof d.query !== "string") return;
+      const q = d.query.trim().slice(0, 200);
+      if (q) askRef.current(q);
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
+
   const live = phase === "live";
 
   return (

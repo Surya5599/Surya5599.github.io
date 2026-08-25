@@ -41,7 +41,18 @@ export function buildDashboardDoc(html: string): string {
   }
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-thumb { background: #d8d3c6; border-radius: 4px; }
+  .drillable, [onclick] { cursor: pointer; }
 </style>
+<script>
+  // Drill-down bridge: generated dashboards call drill("question") to ask
+  // SAGE for a deeper dashboard. postMessage is the only door out of this
+  // sandbox — the parent validates shape and length before acting.
+  window.drill = function (q) {
+    try {
+      parent.postMessage({ type: "sage-drill", query: String(q).slice(0, 200) }, "*");
+    } catch (e) {}
+  };
+</script>
 </head>
 <body>
 ${html}
