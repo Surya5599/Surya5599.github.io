@@ -326,13 +326,20 @@ export default function App() {
     <div className="mx-auto flex min-h-dvh max-w-7xl flex-col gap-4 p-4 sm:p-6 lg:flex-row">
       {/* sidebar */}
       <aside className="hud flex shrink-0 flex-row items-center gap-1 self-start p-3 lg:sticky lg:top-6 lg:w-56 lg:flex-col lg:items-stretch lg:gap-1.5 lg:p-4 max-lg:w-full max-lg:overflow-x-auto">
-        <div className="mr-2 lg:mb-3 lg:mr-0">
-          <p className="font-display text-xl font-black leading-none">
-            {profile.name.split(" ")[0]}<span className="text-clay-deep">.</span>
-          </p>
-          <p className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.15em] text-faded lg:block">
-            personal analytics
-          </p>
+        <div className="mr-2 flex items-center gap-3 lg:mb-3 lg:mr-0">
+          <img
+            src="/surya.jpg"
+            alt="Surya Singh"
+            className="h-10 w-10 shrink-0 rounded-full border-2 border-ink object-cover shadow-[2px_2px_0_var(--color-ink)] lg:h-14 lg:w-14"
+          />
+          <div>
+            <p className="font-display text-xl font-black leading-none">
+              {profile.name.split(" ")[0]}<span className="text-clay-deep">.</span>
+            </p>
+            <p className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.15em] text-faded lg:block">
+              personal analytics
+            </p>
+          </div>
         </div>
         {NAV.map((n) => (
           <button
