@@ -99,17 +99,17 @@ export const skills: Skill[] = [
     status: "active",
     detail:
       "One Supabase backend behind three surfaces. Streaks, weekly targets, journaling, shareable progress cards generated client-side, i18n, and Excel export. The extension is published on the Chrome Web Store.",
-    repo: "https://github.com/Surya5599/habittracker",
+    link: { label: "habicard.com", url: "https://habicard.com" },
   },
   {
     slug: "universalshelter",
     name: "UniversalShelter.org",
     description:
-      "Actum — a platform building a global system of universal homes, so shelter can exist without rent, mortgage, or debt.",
-    tools: ["Frontend", "Backend", "Supabase", "Netlify", "Cloudflare", "PayPal API", "Mail API", "Google APIs"],
+      "Actum — a platform building a global system of universal homes, so shelter can exist without rent, mortgage, or debt. Marketing site, donation flow, merch storefront, and a live transparency dashboard.",
+    tools: ["React + TypeScript", "Supabase", "Netlify", "Cloudflare", "PayPal API", "Shopify API", "Resend + Gmail API", "SnapTrade"],
     status: "active",
     detail:
-      "Built and operated end to end as a solo developer: the frontend and backend, Supabase for database and auth, Netlify hosting and serverless functions, Cloudflare for DNS/CDN and security, PayPal API for donations, transactional email through a mailserver API, and Google API integrations.",
+      "Built and operated end to end: React 18 + TypeScript + Vite frontend with Framer Motion; Supabase for auth, Postgres, Realtime, and Edge Functions; Netlify hosting and serverless functions; Cloudflare DNS/CDN. Donations run through the PayPal API with server-side webhooks that log transactions and auto-send IRS-style donor receipts via the Gmail API; the contact and careers flows email through Resend. A Shopify Storefront/Admin merch shop funds the mission, and a transparency dashboard shows real brokerage data synced nightly from Vanguard via SnapTrade on a GitHub Actions cron.",
     link: { label: "universalshelter.org", url: "https://universalshelter.org" },
   },
   {
