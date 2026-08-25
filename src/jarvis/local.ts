@@ -12,7 +12,7 @@ export function localAnswer(q: string, persona: string | null): { reply: string;
     return {
       reply: "Here's Surya's career at a glance — four-plus years from ETL developer to building agentic AI data tooling.",
       widgets: [
-        { type: "stat", label: "years in data engineering", value: "4+" },
+        { type: "stat", label: "years in data engineering", value: "5+" },
         { type: "stat", label: "daily users on his dashboards", value: "10,000+" },
         { type: "timeline" },
       ],
@@ -61,7 +61,7 @@ export function localAnswer(q: string, persona: string | null): { reply: string;
   return {
     reply: `I can tell you about Surya's experience, AI work, projects, or stack${persona ? ` — tailored for a ${persona}` : ""}. My full reasoning needs the live model, but the essentials are all here. Try "show me his projects" or "build me a career dashboard."`,
     widgets: [
-      { type: "stat", label: "years in data", value: "4+" },
+      { type: "stat", label: "years in data", value: "5+" },
       { type: "stat", label: "personal builds", value: String(skills.length) },
       { type: "contact" },
     ],
@@ -70,13 +70,13 @@ export function localAnswer(q: string, persona: string | null): { reply: string;
 
 export function greetingFor(persona: string): { reply: string; widgets: Widget[] } {
   const intro: Record<string, string> = {
-    recruiter: "Welcome. The headline: 4+ years in data engineering, currently building agentic AI tooling in production at Oliver Wight. Here's the summary a recruiter usually wants first — ask me anything deeper.",
+    recruiter: "Welcome. The headline: 5+ years in data engineering, currently building agentic AI tooling in production at Oliver Wight. Here's the summary a recruiter usually wants first — ask me anything deeper.",
     engineer: "Hey. Surya's an ETL-to-agents engineer — Claude agents and skills, LangChain, Airflow, Fabric. Two of his systems projects run live in this page. Ask me something technical.",
     curious: "Welcome in. Surya turns messy data into decisions, and lately builds AI that does it for him. Poke around — ask me anything, or try a live demo.",
   };
   const widgets: Record<string, Widget[]> = {
     recruiter: [
-      { type: "stat", label: "years in data engineering", value: "4+" },
+      { type: "stat", label: "years in data engineering", value: "5+" },
       { type: "stat", label: "daily dashboard users", value: "10,000+" },
       { type: "timeline" },
       { type: "contact" },

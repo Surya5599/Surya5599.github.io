@@ -4,7 +4,7 @@ import { skills, experience, toolbox, type Skill, type Job } from "../data/profi
 // src/data/profile.ts — update that file and every chart follows.
 
 export const KPIS = [
-  { label: "years in data engineering", value: 4, suffix: "+" },
+  { label: "years in data engineering", value: 5, suffix: "+" },
   { label: "daily dashboard users", value: 10000, suffix: "+" },
   { label: "reports migrated off legacy", value: 500, suffix: "+" },
   { label: "data retrieval speedup", value: 16, suffix: "×" },

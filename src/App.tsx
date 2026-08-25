@@ -46,8 +46,8 @@ function Avatar() {
 
   // eye positions over the photo (fraction of the frame) — pupils track the cursor
   const EYES = [
-    { left: 42.6, top: 44.8 },
-    { left: 58.8, top: 44.8 },
+    { left: 42.0, top: 45.0 },
+    { left: 60.0, top: 45.0 },
   ];
   return (
     <div
@@ -62,8 +62,8 @@ function Avatar() {
           style={{
             left: `${e.left}%`,
             top: `${e.top}%`,
-            width: "8%",
-            height: "6.2%",
+            width: "8.5%",
+            height: "5.5%",
             transform: "translate(-50%, -50%)",
             background: "#e9e0d0",
             boxShadow: "inset 0 0 1px rgba(0,0,0,0.55)",

@@ -17,7 +17,7 @@ export const profile = {
   role: "Data Engineer",
   location: "Los Angeles, CA",
   tagline:
-    "Data engineer with 4+ years across ETL, data architecture, and BI — now building the agentic layer on top: Claude agents and skills, LangChain pipelines, and AI workflows that turn weeks of data onboarding into days.",
+    "Data engineer with 5+ years across ETL, data architecture, and BI — now building the agentic layer on top: Claude agents and skills, LangChain pipelines, and AI workflows that turn weeks of data onboarding into days.",
   github: "https://github.com/Surya5599",
   email: "surya.singhp59@gmail.com",
   about: [
