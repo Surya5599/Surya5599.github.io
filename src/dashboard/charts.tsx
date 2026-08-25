@@ -48,12 +48,17 @@ export function Gantt({ selected, onSelect }: { selected: number | null; onSelec
       ))}
       {SPANS.map((s: Span, i) => {
         const isSel = selected === i;
+        const barW = Math.max(8, x(s.end) - x(s.start));
+        const label = `${s.job.company} · ${s.job.role}`;
+        // ~6.6 units per char at 11.5px bold; place inside → right → left
+        const labelW = label.length * 6.6;
+        const place = labelW + 20 <= barW ? "in" : x(s.end) + 10 + labelW <= W ? "right" : "left";
         return (
           <g key={i} onClick={() => onSelect(i)} className="cursor-pointer">
             <rect
               x={x(s.start)}
               y={i * ROW + 4}
-              width={Math.max(8, x(s.end) - x(s.start))}
+              width={barW}
               height={ROW - 12}
               rx={11}
               fill={colors[i % colors.length]}
@@ -61,17 +66,18 @@ export function Gantt({ selected, onSelect }: { selected: number | null; onSelec
               strokeWidth={isSel ? 3 : 2}
               opacity={selected === null || isSel ? 1 : 0.35}
             >
-              <animate attributeName="width" from="8" to={Math.max(8, x(s.end) - x(s.start))} dur="0.7s" fill="freeze" />
+              <animate attributeName="width" from="8" to={barW} dur="0.7s" fill="freeze" />
             </rect>
             <text
-              x={x(s.start) + 10}
+              x={place === "in" ? x(s.start) + 10 : place === "right" ? x(s.end) + 10 : x(s.start) - 10}
+              textAnchor={place === "left" ? "end" : "start"}
               y={i * ROW + ROW / 2 + 1}
               fontSize="11.5"
               fontWeight="800"
               fill="var(--color-ink)"
               pointerEvents="none"
             >
-              {s.job.company} · {s.job.role}
+              {label}
             </text>
           </g>
         );
