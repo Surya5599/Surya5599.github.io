@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { profile, education } from "./data/profile";
+import { profile, education, roles } from "./data/profile";
 import { KPIS, SPANS, skills, toolbox, techFrequency, allTechs, categoryCounts, STATUS_COLOR, type Skill, type Status } from "./dashboard/data";
 import { CountUp, Gantt, Donut, Bars } from "./dashboard/charts";
 import SimModal from "./SimModal";
@@ -97,6 +97,37 @@ function Spark({ values }: { values: number[] }) {
         <circle key={i} cx={(i / (values.length - 1)) * w} cy={h - 3 - (v / max) * (h - 8)} r="2" fill="var(--color-ink)" />
       ))}
     </svg>
+  );
+}
+
+const BASIS_STYLE: Record<string, string> = {
+  "by profession": "bg-clay text-white",
+  "by shipped projects": "bg-moss text-ink",
+  published: "bg-violet text-ink",
+};
+
+function RolesStrip({ go }: { go: (v: View) => void }) {
+  return (
+    <section className="hud flyin p-5">
+      <h2 className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">
+        the hats — and the evidence for each
+      </h2>
+      <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-5">
+        {roles.map((r) => (
+          <button
+            key={r.title}
+            onClick={() => go(r.goto)}
+            className="cursor-pointer rounded-xl border-2 border-ink bg-linen p-3 text-left shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+          >
+            <p className="text-sm font-extrabold leading-tight">{r.title}</p>
+            <span className={`mt-1.5 inline-block rounded-full border border-ink px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${BASIS_STYLE[r.basis]}`}>
+              {r.basis}
+            </span>
+            <p className="mt-1.5 text-[11px] font-semibold leading-snug text-faded">{r.proof}</p>
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -274,6 +305,7 @@ function Overview({ go }: { go: (v: View) => void }) {
           </Card>
         ))}
       </div>
+      <RolesStrip go={go} />
       <Featured go={() => go("projects")} />
       <LiveStrip />
       <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">

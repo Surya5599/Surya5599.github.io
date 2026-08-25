@@ -27,6 +27,22 @@ export const profile = {
   ],
 };
 
+export type Role = {
+  title: string;
+  basis: "by profession" | "by shipped projects" | "published";
+  proof: string;
+  goto: "experience" | "projects";
+};
+
+// every hat is backed by evidence — employment or shipped, verifiable work
+export const roles: Role[] = [
+  { title: "Data Engineer", basis: "by profession", proof: "5+ years — Infosys, Oliver Wight", goto: "experience" },
+  { title: "Full-Stack Developer", basis: "by shipped projects", proof: "UniversalShelter.org, HabiCard — frontend to database", goto: "projects" },
+  { title: "DevOps Engineer", basis: "by shipped projects", proof: "Netlify + Cloudflare infra, GitHub Actions pipelines, CI deploys", goto: "projects" },
+  { title: "iOS Developer", basis: "published", proof: "HabiCard on the App Store", goto: "projects" },
+  { title: "Chrome Extension Developer", basis: "published", proof: "HabiCard on the Chrome Web Store", goto: "projects" },
+];
+
 export type Job = {
   company: string;
   role: string;
