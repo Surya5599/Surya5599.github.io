@@ -100,6 +100,71 @@ function Spark({ values }: { values: number[] }) {
   );
 }
 
+const FEATURED: { slug: string; tagline: string; links: { label: string; url: string }[] }[] = [
+  {
+    slug: "universalshelter",
+    tagline: "Universal housing platform — donations, merch, live transparency dashboard.",
+    links: [{ label: "visit site", url: "https://universalshelter.org" }],
+  },
+  {
+    slug: "habicard",
+    tagline: "Habit tracking on web, iOS, and your new-tab page.",
+    links: [
+      { label: "web", url: "https://habicard.com" },
+      { label: "app store", url: "https://apps.apple.com/us/app/habicard/id6766097500" },
+      { label: "chrome", url: "https://chromewebstore.google.com/detail/habicard-habit-tracker/bjmipgjaandcekaeookkfpacggnodoaj" },
+    ],
+  },
+  {
+    slug: "cc-fleet",
+    tagline: "Your AI coding sessions as desktop pixel pets — see who needs you at a glance.",
+    links: [
+      { label: "github", url: "https://github.com/Surya5599/cc-fleet" },
+      { label: "download", url: "https://github.com/Surya5599/cc-fleet/releases" },
+    ],
+  },
+];
+
+function Featured({ go }: { go: () => void }) {
+  return (
+    <section>
+      <div className="mb-2.5 flex items-baseline justify-between">
+        <h2 className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">✦ now shipping</h2>
+        <button onClick={go} className="cursor-pointer text-[11px] font-bold text-clay-deep underline underline-offset-2">
+          all projects →
+        </button>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {FEATURED.map((f, i) => {
+          const skill = skills.find((k) => k.slug === f.slug);
+          if (!skill) return null;
+          return (
+            <div key={f.slug} className="hud flyin flex flex-col p-5" style={{ animationDelay: `${i * 90}ms` }}>
+              <h3 className="font-display text-2xl font-extrabold">{skill.name}</h3>
+              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-ink/80">{f.tagline}</p>
+              <div className="mt-3.5 flex flex-wrap gap-2">
+                {f.links.map((l, j) => (
+                  <a
+                    key={l.url}
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`pill px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider ${
+                      j === 0 ? "bg-clay text-white" : "bg-oat text-ink"
+                    }`}
+                  >
+                    {l.label} ↗
+                  </a>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function LiveStrip() {
   const live = useLive();
   if (!live.ok) return null;
@@ -209,6 +274,7 @@ function Overview({ go }: { go: (v: View) => void }) {
           </Card>
         ))}
       </div>
+      <Featured go={() => go("projects")} />
       <LiveStrip />
       <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
         <Card title="career timeline" aside={<button onClick={() => go("experience")} className="text-[11px] font-bold text-clay-deep underline underline-offset-2 cursor-pointer">open experience →</button>}>
@@ -222,7 +288,7 @@ function Overview({ go }: { go: (v: View) => void }) {
         <Card title="projects by status" aside={<button onClick={() => go("projects")} className="text-[11px] font-bold text-clay-deep underline underline-offset-2 cursor-pointer">open projects →</button>}>
           <Donut filter={null} onSelect={() => go("projects")} />
           <p className="mt-3 text-sm leading-relaxed text-faded">
-            {skills.length} personal builds across mobile, web, systems, and hardware — two of them
+            {skills.length} personal builds across mobile, web, systems, and hardware — five of them
             run live in this site.
           </p>
         </Card>

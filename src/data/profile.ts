@@ -106,6 +106,18 @@ export const skills: Skill[] = [
     ],
   },
   {
+    slug: "cc-fleet",
+    name: "cc-fleet",
+    description:
+      "Every Claude Code session on your machine as a pixel blob pet on your desktop — hops when it needs you, sleeps when it's done.",
+    tools: ["Python", "stdlib only", "Win32 overlay", "pixel art"],
+    status: "active",
+    detail:
+      "A click-through desktop overlay for people running many AI coding sessions at once: each session becomes a color-coded pet with three states (needs you / running / done), plus a card showing the session's task, model, and context usage. Pure Python standard library — one file, no install, shipped as a signed-nothing single exe.",
+    repo: "https://github.com/Surya5599/cc-fleet",
+    links: [{ label: "download", url: "https://github.com/Surya5599/cc-fleet/releases" }],
+  },
+  {
     slug: "gymshot",
     name: "GymShot",
     description:
