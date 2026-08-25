@@ -29,7 +29,7 @@ export function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
 
 export function Gantt({ selected, onSelect }: { selected: number | null; onSelect: (i: number) => void }) {
   const W = 640;
-  const ROW = 48;
+  const ROW = 56;
   const LEFT = 8;
   const years = [];
   for (let y = CAREER_START; y <= Math.floor(CAREER_END); y++) years.push(y);
@@ -56,10 +56,10 @@ export function Gantt({ selected, onSelect }: { selected: number | null; onSelec
           <g key={i} onClick={() => onSelect(i)} className="cursor-pointer">
             <rect
               x={x(s.start)}
-              y={i * ROW + 10}
+              y={i * ROW + 8}
               width={barW}
-              height={ROW - 22}
-              rx={13}
+              height={ROW - 16}
+              rx={18}
               fill={colors[i % colors.length]}
               stroke="var(--color-ink)"
               strokeWidth={isSel ? 3 : 2}
