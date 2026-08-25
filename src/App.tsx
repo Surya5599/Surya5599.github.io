@@ -4,6 +4,8 @@ import { KPIS, SPANS, skills, toolbox, techFrequency, allTechs, categoryCounts, 
 import { CountUp, Gantt, Donut, Bars } from "./dashboard/charts";
 import SimModal from "./SimModal";
 import { SIMS } from "./sims";
+import { useLive, relTime } from "./live";
+import { openResume } from "./resume";
 
 type View = "overview" | "experience" | "projects" | "skills" | "contact";
 
@@ -84,6 +86,88 @@ function Avatar() {
   );
 }
 
+function Spark({ values }: { values: number[] }) {
+  const w = 140, h = 28;
+  const max = Math.max(1, ...values);
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${h - 3 - (v / max) * (h - 8)}`).join(" ");
+  return (
+    <svg width={w} height={h} className="shrink-0">
+      <polyline points={pts} fill="none" stroke="var(--color-clay-deep)" strokeWidth="2" strokeLinejoin="round" />
+      {values.map((v, i) => v > 0 && (
+        <circle key={i} cx={(i / (values.length - 1)) * w} cy={h - 3 - (v / max) * (h - 8)} r="2" fill="var(--color-ink)" />
+      ))}
+    </svg>
+  );
+}
+
+function LiveStrip() {
+  const live = useLive();
+  if (!live.ok) return null;
+  return (
+    <section className="hud flyin flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3 text-xs font-bold">
+      <span className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">
+        <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-moss" /> live from github
+      </span>
+      {live.lastPush && <span>last commit {relTime(live.lastPush)}</span>}
+      {live.commitsByDay && (
+        <span className="flex items-center gap-2">
+          <Spark values={live.commitsByDay} />
+          <span className="text-faded">{live.recentCommits} commits · 14d</span>
+        </span>
+      )}
+      {live.publicRepos !== undefined && <span>{live.publicRepos} public repos</span>}
+      {live.rating && <span>HabiCard ★ {live.rating.avg.toFixed(1)}</span>}
+      <span className="ml-auto text-[10px] font-semibold text-faded">
+        synced {live.syncedAt?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · no backend, fetched by your browser
+      </span>
+    </section>
+  );
+}
+
+type PaletteItem = { label: string; hint: string; act: () => void };
+
+function CommandPalette({ items, onClose }: { items: PaletteItem[]; onClose: () => void }) {
+  const [q, setQ] = useState("");
+  const [idx, setIdx] = useState(0);
+  const hits = items.filter((it) => it.label.toLowerCase().includes(q.toLowerCase())).slice(0, 9);
+  const run = (it: PaletteItem) => { onClose(); it.act(); };
+  return (
+    <div className="fixed inset-0 z-[90] flex items-start justify-center bg-ink/40 pt-[18vh]" onMouseDown={onClose}>
+      <div className="hud w-full max-w-md overflow-hidden !rounded-2xl bg-linen" onMouseDown={(e) => e.stopPropagation()}>
+        <input
+          autoFocus
+          value={q}
+          onChange={(e) => { setQ(e.target.value); setIdx(0); }}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") { e.preventDefault(); setIdx((i) => Math.min(hits.length - 1, i + 1)); }
+            if (e.key === "ArrowUp") { e.preventDefault(); setIdx((i) => Math.max(0, i - 1)); }
+            if (e.key === "Enter" && hits[idx]) run(hits[idx]);
+            if (e.key === "Escape") onClose();
+          }}
+          placeholder="Jump to anything… (views, projects, demos)"
+          aria-label="Command palette"
+          className="w-full border-b-2 border-ink bg-linen px-4 py-3 text-sm font-semibold focus:outline-none"
+        />
+        <div className="max-h-72 overflow-y-auto py-1.5">
+          {hits.map((it, i) => (
+            <button
+              key={it.label}
+              onClick={() => run(it)}
+              onMouseEnter={() => setIdx(i)}
+              className={`flex w-full cursor-pointer items-center justify-between px-4 py-2 text-left text-sm font-bold ${i === idx ? "bg-clay/25" : ""}`}
+            >
+              {it.label}
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-faded">{it.hint}</span>
+            </button>
+          ))}
+          {hits.length === 0 && <p className="px-4 py-3 text-sm text-faded">Nothing matches.</p>}
+        </div>
+        <p className="border-t border-oat px-4 py-1.5 text-[10px] font-bold text-faded">↑↓ navigate · ⏎ go · esc close</p>
+      </div>
+    </div>
+  );
+}
+
 function Card({ title, aside, children, className = "" }: { title?: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
     <section className={`hud flyin p-5 ${className}`}>
@@ -125,6 +209,7 @@ function Overview({ go }: { go: (v: View) => void }) {
           </Card>
         ))}
       </div>
+      <LiveStrip />
       <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
         <Card title="career timeline" aside={<button onClick={() => go("experience")} className="text-[11px] font-bold text-clay-deep underline underline-offset-2 cursor-pointer">open experience →</button>}>
           <Gantt selected={role} onSelect={(i) => setRole(role === i ? null : i)} />
@@ -400,8 +485,86 @@ function Contact() {
 
 /* ---------------- shell ---------------- */
 
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export default function App() {
   const [view, setView] = useState<View>("overview");
+  const [globalSim, setGlobalSim] = useState<{ slug: string; title: string } | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [tourCaption, setTourCaption] = useState<string | null>(null);
+  const tourCancel = useRef(false);
+
+  // ⌘K palette + "sudo" easter egg
+  useEffect(() => {
+    let buf = "";
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+        return;
+      }
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key.length === 1) {
+        buf = (buf + e.key.toLowerCase()).slice(-4);
+        if (buf === "sudo") {
+          buf = "";
+          setGlobalSim({ slug: "rshell", title: "sudo: permission denied — but here, have a shell" });
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  async function runTour() {
+    if (tourCaption !== null) return;
+    tourCancel.current = false;
+    const step = async (caption: string, ms: number, act?: () => void) => {
+      if (tourCancel.current) throw new Error("cancelled");
+      act?.();
+      setTourCaption(caption);
+      await wait(ms);
+    };
+    try {
+      await step("This is my career as a dashboard — every number on it is real.", 4000, () => setView("overview"));
+      await step("5+ years of data engineering: Infosys → Oliver Wight, where I now build AI agents that run production pipelines.", 5000, () => setView("experience"));
+      await step("8 personal builds. Filter them, click them — five of them actually run in this page.", 4500, () => setView("projects"));
+      await step("Like this: my C++ shell from college, rebuilt to run in your browser…", 2500, () =>
+        setGlobalSim({ slug: "rshell", title: "rshell — live during the tour" }));
+      await step("Real parsing, real pipes, real exit codes.", 300);
+      (window as unknown as { __rshellRun?: (c: string) => void }).__rshellRun?.("echo hello && echo from the tour");
+      await step("Real parsing, real pipes, real exit codes.", 3000);
+      (window as unknown as { __rshellRun?: (c: string) => void }).__rshellRun?.("(echo a; echo b) | wc");
+      await step("Real parsing, real pipes, real exit codes.", 3500);
+      await step("Everything here is generated from one data file — including the resume you can download.", 4000, () => {
+        setGlobalSim(null);
+        setView("contact");
+      });
+      await step("That's the 30-second version. The rest is yours to click. — Surya", 4000);
+    } catch {
+      setGlobalSim(null);
+    } finally {
+      setTourCaption(null);
+    }
+  }
+
+  const paletteItems: PaletteItem[] = [
+    ...NAV.map((n) => ({ label: n.label, hint: "view", act: () => setView(n.key) })),
+    ...Object.keys(SIMS).map((slug) => ({
+      label: `run ${skills.find((k) => k.slug === slug)?.name ?? slug} demo`,
+      hint: "live demo",
+      act: () => setGlobalSim({ slug, title: SIMS[slug].title }),
+    })),
+    ...skills.map((k) => ({ label: k.name, hint: "project", act: () => setView("projects") })),
+    { label: "60-second tour", hint: "play", act: runTour },
+    { label: "download resume (PDF)", hint: "print", act: openResume },
+    { label: "email surya", hint: "contact", act: () => (window.location.href = `mailto:${profile.email}`) },
+    { label: "github profile", hint: "link", act: () => window.open(profile.github, "_blank") },
+    { label: "habicard.com", hint: "link", act: () => window.open("https://habicard.com", "_blank") },
+    { label: "universalshelter.org", hint: "link", act: () => window.open("https://universalshelter.org", "_blank") },
+  ];
+
   return (
     <div className="mx-auto flex min-h-dvh max-w-7xl flex-col gap-4 p-4 sm:p-6 lg:flex-row">
       {/* sidebar */}
@@ -430,6 +593,12 @@ export default function App() {
           </button>
         ))}
         <div className="hidden flex-1 lg:block" />
+        <button
+          onClick={openResume}
+          className="pill hidden cursor-pointer bg-clay px-3 py-2 text-[11px] font-extrabold uppercase tracking-wider text-white lg:block"
+        >
+          ⬇ resume (pdf)
+        </button>
         <a
           href={profile.github}
           target="_blank"
@@ -442,11 +611,24 @@ export default function App() {
 
       {/* main */}
       <main className="min-w-0 flex-1">
-        <header className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h1 className="font-display text-3xl font-black capitalize sm:text-4xl">{NAV.find((n) => n.key === view)?.label ?? view}</h1>
-          <p className="text-xs font-semibold text-faded">
-            {profile.role} · {profile.location} · every number here is real
-          </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={runTour}
+              disabled={tourCaption !== null}
+              className="pill cursor-pointer bg-amber/80 px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider disabled:opacity-50"
+            >
+              ▶ 30-sec tour
+            </button>
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="pill hidden cursor-pointer bg-linen px-3.5 py-1.5 text-[11px] font-extrabold text-faded sm:block"
+              title="Command palette"
+            >
+              ⌘K
+            </button>
+          </div>
         </header>
         {view === "overview" && <Overview go={setView} />}
         {view === "experience" && <Experience />}
@@ -455,8 +637,32 @@ export default function App() {
         {view === "contact" && <Contact />}
         <footer className="py-6 text-center text-[11px] font-semibold text-faded">
           © {new Date().getFullYear()} {profile.name} — a dashboard about the person who builds dashboards.
+          <span className="ml-2 text-faded/70">psst: try typing sudo.</span>
         </footer>
       </main>
+
+      {globalSim && SIMS[globalSim.slug] && (
+        <SimModal title={globalSim.title} onClose={() => setGlobalSim(null)}>
+          {(() => {
+            const C = SIMS[globalSim.slug].component;
+            return <C />;
+          })()}
+        </SimModal>
+      )}
+      {paletteOpen && <CommandPalette items={paletteItems} onClose={() => setPaletteOpen(false)} />}
+      {tourCaption && (
+        <div className="fixed inset-x-0 bottom-6 z-[80] flex justify-center px-4">
+          <div className="hud flex max-w-xl items-center gap-4 bg-linen px-5 py-3.5 text-sm font-bold">
+            <span>{tourCaption}</span>
+            <button
+              onClick={() => (tourCancel.current = true)}
+              className="pill shrink-0 cursor-pointer bg-oat px-3 py-1 text-[10px] font-extrabold uppercase"
+            >
+              skip
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

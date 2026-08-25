@@ -95,7 +95,7 @@ export const skills: Skill[] = [
     name: "HabiCard",
     description:
       "Habit tracking that lives where you already are: web dashboard, Chrome new-tab extension, and iOS.",
-    tools: ["React 19", "Vite", "Capacitor", "Supabase", "Manifest V3"],
+    tools: ["React 19", "Vite", "Expo", "Supabase", "Manifest V3"],
     status: "active",
     detail:
       "One Supabase backend behind three surfaces. Streaks, weekly targets, journaling, shareable progress cards generated client-side, i18n, and Excel export. The extension is published on the Chrome Web Store.",

@@ -25,6 +25,15 @@ export default function RShellSim() {
     endRef.current?.scrollIntoView({ block: "nearest" });
   }, [entries]);
 
+  // bridge for the site tour: lets the tour type commands into this shell
+  const runRef = useRef<(line: string) => void>(() => {});
+  useEffect(() => {
+    (window as unknown as { __rshellRun?: (c: string) => void }).__rshellRun = (c) => runRef.current(c);
+    return () => {
+      delete (window as unknown as { __rshellRun?: (c: string) => void }).__rshellRun;
+    };
+  }, []);
+
   function run(line: string) {
     const cmd = line.trim();
     if (!cmd) return;
@@ -42,6 +51,7 @@ export default function RShellSim() {
     }
     inputRef.current?.focus();
   }
+  runRef.current = run;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col font-mono text-[13px] leading-relaxed">
