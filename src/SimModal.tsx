@@ -39,10 +39,10 @@ export default function SimModal({
           <span>{title}</span>
           <button
             onClick={onClose}
-            className="cursor-pointer px-1 text-pane-dim hover:text-pane-text"
+            className="cursor-pointer rounded-full border border-pane-dim px-3 py-1 font-bold text-pane-text transition-colors hover:border-pane-text hover:bg-pane-edge"
             aria-label="Close simulation"
           >
-            ✕ esc
+            ✕ close
           </button>
         </header>
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
