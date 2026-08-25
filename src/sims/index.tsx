@@ -10,6 +10,6 @@ export const SIMS: Record<string, { title: string; component: ComponentType }> =
   rshell: { title: "rshell — interactive simulation", component: RShellSim },
   sketchboard: { title: "sketchboard — interactive breadboard", component: SketchBoardSim },
   "data-analysis": { title: "data analysis — the real notebooks, rendered live", component: NotebookSim },
-  "ocr-equation-solver": { title: "ocr equation solver — pipeline simulation", component: OcrSim },
-  "cruise-management": { title: "cruise management system — booking simulation", component: CruiseSim },
+  "ocr-equation-solver": { title: "ocr equation solver — real demo video", component: OcrSim },
+  "cruise-management": { title: "ship management system — swing gui recreation", component: CruiseSim },
 };

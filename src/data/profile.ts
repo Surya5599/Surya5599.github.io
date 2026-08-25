@@ -114,7 +114,7 @@ export const skills: Skill[] = [
   },
   {
     slug: "cruise-management",
-    name: "Cruise Management System",
+    name: "Ship Management System",
     description:
       "Booking and maintenance system for ship schedules, reservations, and crews.",
     tools: ["Java", "Swing", "PostgreSQL"],
