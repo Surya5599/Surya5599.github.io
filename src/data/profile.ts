@@ -9,7 +9,7 @@ export type Skill = {
   status: "active" | "building" | "shipped" | "college project";
   detail: string;
   repo?: string;
-  link?: { label: string; url: string };
+  links?: { label: string; url: string }[];
 };
 
 export const profile = {
@@ -80,15 +80,15 @@ export const education = "B.S. Computer Science — University of California, Ri
 
 export const skills: Skill[] = [
   {
-    slug: "gymshot",
-    name: "GymShot",
+    slug: "universalshelter",
+    name: "UniversalShelter.org",
     description:
-      "Daily body-progress-photo app where small pods of friends keep each other accountable.",
-    tools: ["React Native", "Expo", "TypeScript", "local-first"],
-    status: "building",
+      "Actum — a platform building a global system of universal homes, so shelter can exist without rent, mortgage, or debt. Marketing site, donation flow, merch storefront, and a live transparency dashboard.",
+    tools: ["React + TypeScript", "Supabase", "Netlify", "Cloudflare", "PayPal API", "Shopify API", "Resend + Gmail API", "SnapTrade"],
+    status: "active",
     detail:
-      "Ghost-overlay camera for consistent angles, streak rings, invite-only pods over deep links, iMessage-style reaction thread, face blur for privacy. Local-first by design; personal timelapse playback built in.",
-    repo: "https://github.com/Surya5599/gymshot",
+      "Built and operated end to end: React 18 + TypeScript + Vite frontend with Framer Motion; Supabase for auth, Postgres, Realtime, and Edge Functions; Netlify hosting and serverless functions; Cloudflare DNS/CDN. Donations run through the PayPal API with server-side webhooks that log transactions and auto-send IRS-style donor receipts via the Gmail API; the contact and careers flows email through Resend. A Shopify Storefront/Admin merch shop funds the mission, and a transparency dashboard shows real brokerage data synced nightly from Vanguard via SnapTrade on a GitHub Actions cron.",
+    links: [{ label: "universalshelter.org", url: "https://universalshelter.org" }],
   },
   {
     slug: "habicard",
@@ -99,18 +99,22 @@ export const skills: Skill[] = [
     status: "active",
     detail:
       "One Supabase backend behind three surfaces. Streaks, weekly targets, journaling, shareable progress cards generated client-side, i18n, and Excel export. The extension is published on the Chrome Web Store.",
-    link: { label: "habicard.com", url: "https://habicard.com" },
+    links: [
+      { label: "habicard.com", url: "https://habicard.com" },
+      { label: "app store", url: "https://apps.apple.com/us/app/habicard/id6766097500" },
+      { label: "chrome extension", url: "https://chromewebstore.google.com/detail/habicard-habit-tracker/bjmipgjaandcekaeookkfpacggnodoaj" },
+    ],
   },
   {
-    slug: "universalshelter",
-    name: "UniversalShelter.org",
+    slug: "gymshot",
+    name: "GymShot",
     description:
-      "Actum — a platform building a global system of universal homes, so shelter can exist without rent, mortgage, or debt. Marketing site, donation flow, merch storefront, and a live transparency dashboard.",
-    tools: ["React + TypeScript", "Supabase", "Netlify", "Cloudflare", "PayPal API", "Shopify API", "Resend + Gmail API", "SnapTrade"],
-    status: "active",
+      "Daily body-progress-photo app where small pods of friends keep each other accountable.",
+    tools: ["React Native", "Expo", "TypeScript", "local-first"],
+    status: "building",
     detail:
-      "Built and operated end to end: React 18 + TypeScript + Vite frontend with Framer Motion; Supabase for auth, Postgres, Realtime, and Edge Functions; Netlify hosting and serverless functions; Cloudflare DNS/CDN. Donations run through the PayPal API with server-side webhooks that log transactions and auto-send IRS-style donor receipts via the Gmail API; the contact and careers flows email through Resend. A Shopify Storefront/Admin merch shop funds the mission, and a transparency dashboard shows real brokerage data synced nightly from Vanguard via SnapTrade on a GitHub Actions cron.",
-    link: { label: "universalshelter.org", url: "https://universalshelter.org" },
+      "Ghost-overlay camera for consistent angles, streak rings, invite-only pods over deep links, iMessage-style reaction thread, face blur for privacy. Local-first by design; personal timelapse playback built in.",
+    repo: "https://github.com/Surya5599/gymshot",
   },
   {
     slug: "cruise-management",

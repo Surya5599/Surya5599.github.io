@@ -303,11 +303,11 @@ function Projects() {
                     ▶ run live demo
                   </button>
                 )}
-                {sel.link && (
-                  <a href={sel.link.url} target="_blank" rel="noreferrer" className="pill bg-moss px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-ink">
-                    visit {sel.link.label} ↗
+                {sel.links?.map((l) => (
+                  <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="pill bg-moss px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-ink">
+                    {l.label} ↗
                   </a>
-                )}
+                ))}
                 {sel.repo && (
                   <a href={sel.repo} target="_blank" rel="noreferrer" className="pill bg-linen px-4 py-2 text-xs font-extrabold uppercase tracking-wider">
                     code ↗
