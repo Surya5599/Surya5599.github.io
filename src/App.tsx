@@ -1,401 +1,374 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { profile } from "./data/profile";
-import Orb, { type OrbState } from "./Orb";
-import { WidgetGrid, type Widget } from "./jarvis/widgets";
-import { localAnswer, greetingFor } from "./jarvis/local";
-import { buildDashboardDoc } from "./jarvis/frame";
-import { skills } from "./data/profile";
+import { useMemo, useState } from "react";
+import { profile, education } from "./data/profile";
+import { KPIS, SPANS, skills, toolbox, techFrequency, allTechs, categoryCounts, STATUS_COLOR, type Skill, type Status } from "./dashboard/data";
+import { CountUp, Gantt, Donut, Bars } from "./dashboard/charts";
 import SimModal from "./SimModal";
 import { SIMS } from "./sims";
 
-type Mode = "chat" | "voice";
-type Phase = "asleep" | "mode" | "persona" | "live";
-type Msg = { role: "user" | "model"; text: string };
+type View = "overview" | "experience" | "projects" | "skills" | "contact";
 
-const SUGGESTIONS = [
-  "Build me a dashboard of his career",
-  "Show his AI work",
-  "What can I play with?",
-  "What's his stack?",
-  "How do I reach him?",
+const NAV: { key: View; label: string; icon: string }[] = [
+  { key: "overview", label: "Overview", icon: "◫" },
+  { key: "experience", label: "Experience", icon: "▤" },
+  { key: "projects", label: "Projects", icon: "✦" },
+  { key: "skills", label: "Skills", icon: "❋" },
+  { key: "contact", label: "Contact", icon: "✉" },
 ];
 
-const PERSONAS = [
-  { key: "recruiter", label: "I'm a recruiter" },
-  { key: "engineer", label: "I'm an engineer" },
-  { key: "curious", label: "Just curious" },
-];
-
-// minimal Web Speech typings (not in the default TS DOM lib)
-type SpeechAlt = { transcript: string };
-type SpeechResult = { isFinal: boolean; 0: SpeechAlt };
-type SpeechEvent = { results: ArrayLike<SpeechResult> };
-type Recognizer = {
-  lang: string;
-  interimResults: boolean;
-  onstart: (() => void) | null;
-  onresult: ((e: SpeechEvent) => void) | null;
-  onerror: (() => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-};
-
-type Dash =
-  | { kind: "gen"; html: string; demos: string[] }
-  | { kind: "local"; widgets: Widget[] };
-
-function DemoButtons({ slugs }: { slugs: string[] }) {
-  const [openSlug, setOpenSlug] = useState<string | null>(null);
-  const valid = slugs.filter((sl) => SIMS[sl]);
-  if (valid.length === 0) return null;
-  const open = openSlug ? SIMS[openSlug] : null;
+function Card({ title, aside, children, className = "" }: { title?: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-center gap-2.5">
-      <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-faded">live demos:</span>
-      {valid.map((sl) => (
-        <button
-          key={sl}
-          onClick={() => setOpenSlug(sl)}
-          className="pill cursor-pointer bg-clay px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-white"
-        >
-          ▶ run {skills.find((k) => k.slug === sl)?.name ?? sl} live
-        </button>
-      ))}
-      {open && openSlug && (
-        <SimModal title={open.title} onClose={() => setOpenSlug(null)}>
-          <open.component />
-        </SimModal>
+    <section className={`hud flyin p-5 ${className}`}>
+      {(title || aside) && (
+        <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          {title && <h2 className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">{title}</h2>}
+          {aside}
+        </header>
       )}
+      {children}
+    </section>
+  );
+}
+
+function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`pill cursor-pointer px-3 py-1 text-[11px] font-extrabold ${on ? "bg-moss text-ink" : "bg-linen text-faded"}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ---------------- views ---------------- */
+
+function Overview({ go }: { go: (v: View) => void }) {
+  const [role, setRole] = useState<number | null>(null);
+  return (
+    <div className="grid gap-4">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        {KPIS.map((k, i) => (
+          <Card key={k.label} className="!p-4" >
+            <p className="font-display text-4xl font-extrabold text-ink" style={{ animationDelay: `${i * 80}ms` }}>
+              <CountUp to={k.value} suffix={k.suffix} />
+            </p>
+            <p className="mt-1 text-xs font-semibold text-faded">{k.label}</p>
+          </Card>
+        ))}
+      </div>
+      <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
+        <Card title="career timeline" aside={<button onClick={() => go("experience")} className="text-[11px] font-bold text-clay-deep underline underline-offset-2 cursor-pointer">open experience →</button>}>
+          <Gantt selected={role} onSelect={(i) => setRole(role === i ? null : i)} />
+          {role !== null && (
+            <p className="mt-2 rounded-xl border-2 border-ink bg-oat p-3 text-sm leading-relaxed">
+              <strong>{SPANS[role].job.role} @ {SPANS[role].job.company}</strong> — {SPANS[role].job.bullets[0]}
+            </p>
+          )}
+        </Card>
+        <Card title="projects by status" aside={<button onClick={() => go("projects")} className="text-[11px] font-bold text-clay-deep underline underline-offset-2 cursor-pointer">open projects →</button>}>
+          <Donut filter={null} onSelect={() => go("projects")} />
+          <p className="mt-3 text-sm leading-relaxed text-faded">
+            {skills.length} personal builds across mobile, web, systems, and hardware — two of them
+            run live in this site.
+          </p>
+        </Card>
+      </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card title="toolbox coverage by category">
+          <Bars
+            items={categoryCounts.map((c) => ({ label: c.category, value: c.count, note: `${c.count} tools` }))}
+            max={Math.max(...categoryCounts.map((c) => c.count))}
+          />
+        </Card>
+        <Card title="summary">
+          <p className="text-[15px] leading-relaxed text-ink/85">{profile.tagline}</p>
+          <p className="mt-3 text-sm leading-relaxed text-faded">
+            Currently: agentic data tooling at Oliver Wight — Claude agents & skills in production,
+            client onboarding cut from weeks to days. Previously: enterprise BI at Infosys for
+            10,000+ daily users. {education}.
+          </p>
+        </Card>
+      </div>
     </div>
   );
 }
 
-function speechRecognitionCtor(): (new () => Recognizer) | null {
-  const w = window as unknown as Record<string, unknown>;
-  return (w.SpeechRecognition as new () => Recognizer) ?? (w.webkitSpeechRecognition as new () => Recognizer) ?? null;
-}
-
-export default function App() {
-  const [phase, setPhase] = useState<Phase>("asleep");
-  const [mode, setMode] = useState<Mode>("chat");
-  const [orb, setOrb] = useState<OrbState>("asleep");
-  const [persona, setPersona] = useState<string | null>(null);
-  const [reply, setReply] = useState("");
-  const [dash, setDash] = useState<Dash>({ kind: "local", widgets: [] });
-  const [history, setHistory] = useState<Msg[]>([]);
-  const [input, setInput] = useState("");
-  const [interim, setInterim] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [offline, setOffline] = useState(false);
-  const recRef = useRef<Recognizer | null>(null);
-  const voiceOK = speechRecognitionCtor() !== null;
-
-  const speak = useCallback(
-    (text: string) => {
-      if (mode !== "voice" || !("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 1.04;
-      u.onstart = () => setOrb("speaking");
-      u.onend = () => setOrb("idle");
-      window.speechSynthesis.speak(u);
-    },
-    [mode],
-  );
-
-  const deliver = useCallback(
-    (reply: string, d: Dash) => {
-      setReply(reply);
-      setDash(d);
-      setHistory((h) => [...h, { role: "model", text: reply }]);
-      setOrb("idle");
-      speak(reply);
-    },
-    [speak],
-  );
-
-  const ask = useCallback(
-    async (q: string) => {
-      const question = q.trim();
-      if (!question || busy) return;
-      setInput("");
-      setInterim("");
-      setBusy(true);
-      setOrb("thinking");
-      const msgs = [...history, { role: "user" as const, text: question }];
-      setHistory(msgs);
-      try {
-        const res = await fetch("/api/jarvis", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: msgs.slice(-10), persona }),
-        });
-        if (!res.ok) throw new Error(String(res.status));
-        const data = await res.json();
-        if (!data.reply || !data.html) throw new Error("empty");
-        deliver(data.reply, { kind: "gen", html: data.html, demos: Array.isArray(data.demos) ? data.demos : [] });
-        setOffline(false);
-      } catch {
-        setOffline(true);
-        const local = localAnswer(question, persona);
-        deliver(local.reply, { kind: "local", widgets: local.widgets });
-      } finally {
-        setBusy(false);
-      }
-    },
-    [busy, history, persona, deliver],
-  );
-
-  const listen = useCallback(() => {
-    const Ctor = speechRecognitionCtor();
-    if (!Ctor || busy) return;
-    window.speechSynthesis?.cancel();
-    const rec = new Ctor();
-    recRef.current = rec;
-    rec.lang = "en-US";
-    rec.interimResults = true;
-    rec.onstart = () => setOrb("listening");
-    rec.onresult = (e: SpeechEvent) => {
-      let final = "";
-      let inter = "";
-      for (const r of Array.from(e.results)) {
-        if (r.isFinal) final += r[0].transcript;
-        else inter += r[0].transcript;
-      }
-      setInterim(inter);
-      if (final) {
-        rec.stop();
-        ask(final);
-      }
-    };
-    rec.onerror = () => setOrb("idle");
-    rec.onend = () => {
-      setInterim("");
-      setOrb((o) => (o === "listening" ? "idle" : o));
-    };
-    rec.start();
-  }, [ask, busy]);
-
-  function wake() {
-    if (phase !== "asleep") return;
-    setPhase("mode");
-    setOrb("idle");
-  }
-
-  function chooseMode(m: Mode) {
-    setMode(m);
-    setPhase("persona");
-    setReply("Online. Who am I speaking with?");
-    if (m === "voice") {
-      const u = new SpeechSynthesisUtterance("Online. Who am I speaking with?");
-      u.onstart = () => setOrb("speaking");
-      u.onend = () => setOrb("idle");
-      window.speechSynthesis?.speak(u);
-    }
-  }
-
-  function choosePersona(key: string, label: string) {
-    setPersona(key);
-    setPhase("live");
-    setHistory([{ role: "user", text: label }]);
-    const greet = greetingFor(key);
-    deliver(greet.reply, { kind: "local", widgets: greet.widgets });
-  }
-
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
-
-  // drill-down requests arriving from generated dashboards (sandboxed iframes)
-  const askRef = useRef(ask);
-  askRef.current = ask;
-  useEffect(() => {
-    const onMsg = (e: MessageEvent) => {
-      const d = e.data as { type?: string; query?: string };
-      if (d?.type !== "sage-drill" || typeof d.query !== "string") return;
-      const q = d.query.trim().slice(0, 200);
-      if (q) askRef.current(q);
-    };
-    window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
-  }, []);
-
-  const live = phase === "live";
-
+function Experience() {
+  const [sel, setSel] = useState(2); // newest first in SPANS index 2
+  const job = SPANS[sel].job;
   return (
-    <div className="flex min-h-dvh flex-col">
-      {/* HUD chrome */}
-      <header className="flex items-center justify-between px-5 py-4 text-sm sm:px-8">
-        <span className="font-display text-2xl font-black tracking-tight">
-          SAGE<span className="text-clay-deep">.</span>
-        </span>
-        <span className="hidden font-mono text-[11px] text-faded sm:block">
-          {live ? (offline ? "● offline brain" : "● gemini brain") : "● standby"}
-        </span>
-        <a className="font-bold underline decoration-2 underline-offset-4 hover:text-clay-deep" href={profile.github} target="_blank" rel="noreferrer">
-          github ↗
-        </a>
-      </header>
-
-      <main className={`mx-auto flex w-full max-w-4xl flex-1 flex-col items-center px-5 ${live ? "" : "justify-center"}`}>
-        {/* the core */}
-        <button
-          onClick={wake}
-          disabled={phase !== "asleep"}
-          aria-label={phase === "asleep" ? "Wake SAGE" : "SAGE core"}
-          className={`relative transition-all duration-700 ${phase === "asleep" ? "cursor-pointer hover:scale-105" : ""}`}
-        >
-          <Orb state={orb} size={live ? 170 : 280} />
-          {phase === "asleep" && (
-            <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold uppercase tracking-[0.35em] text-ink">
-              wake
-            </span>
-          )}
-        </button>
-
-        {phase === "asleep" && (
-          <div className="fadein mt-6 text-center">
-            <h1 className="font-display text-5xl font-black tracking-tight">Meet <span className="text-clay-deep">SAGE</span>.</h1>
-            <p className="mt-2 max-w-sm text-sm leading-relaxed text-faded">
-              Surya's Agentic Guide & Engineer. Ask it anything — it designs a fresh dashboard
-              for every question and runs his demos. Click the core to wake it.
-            </p>
-          </div>
-        )}
-
-        {phase === "mode" && (
-          <div className="fadein mt-8 flex flex-col items-center gap-4">
-            <p className="text-xs font-extrabold uppercase tracking-[0.3em] text-faded">how do you want to talk?</p>
-            <div className="flex gap-4">
+    <div className="grid gap-4">
+      <Card title="timeline — click a bar to inspect">
+        <Gantt selected={sel} onSelect={setSel} />
+      </Card>
+      <div className="grid gap-4 xl:grid-cols-[1fr_2fr]">
+        <Card title="roles">
+          <div className="space-y-2">
+            {SPANS.map((s, i) => (
               <button
-                onClick={() => chooseMode("chat")}
-                className="pill cursor-pointer bg-clay px-8 py-3.5 text-sm font-extrabold uppercase tracking-widest text-white"
+                key={i}
+                onClick={() => setSel(i)}
+                className={`pill block w-full cursor-pointer px-4 py-2.5 text-left text-sm font-bold ${sel === i ? "bg-clay text-white" : "bg-linen"}`}
               >
-                💬 Chat
-              </button>
-              <button
-                onClick={() => chooseMode("voice")}
-                disabled={!voiceOK}
-                className="pill cursor-pointer bg-moss px-8 py-3.5 text-sm font-extrabold uppercase tracking-widest text-ink disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                🎙 Voice
-              </button>
-            </div>
-            {!voiceOK && <p className="font-mono text-[11px] text-faded">voice needs a Chromium-based browser</p>}
-          </div>
-        )}
-
-        {/* SAGE's spoken line */}
-        {(phase === "persona" || live) && reply && (
-          <p key={reply.slice(0, 24)} className="fadein mt-5 max-w-xl text-center text-[15px] leading-relaxed text-ink/90">
-            <span className="text-clay-deep">✿ </span>
-            {reply}
-          </p>
-        )}
-        {interim && <p className="caret mt-2 font-mono text-sm text-moss">{interim}</p>}
-        {busy && <p className="caret mt-2 font-mono text-xs text-faded">designing your dashboard</p>}
-
-        {phase === "persona" && (
-          <div className="fadein mt-6 flex flex-wrap justify-center gap-3">
-            {PERSONAS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => choosePersona(p.key, p.label)}
-                className="pill cursor-pointer bg-linen px-5 py-2.5 text-xs font-extrabold uppercase tracking-widest text-ink"
-              >
-                {p.label}
+                {s.job.company}
+                <span className={`block text-[11px] font-semibold ${sel === i ? "text-white/80" : "text-faded"}`}>
+                  {s.job.role} · {s.job.period}
+                </span>
               </button>
             ))}
           </div>
-        )}
+          <p className="mt-4 text-xs font-semibold text-faded">{education}</p>
+        </Card>
+        <Card title={`${job.role} @ ${job.company}`} aside={<span className="text-[11px] font-bold text-faded">{job.period}</span>}>
+          <ul className="space-y-3">
+            {job.bullets.map((b) => (
+              <li key={b.slice(0, 32)} className="flex gap-2.5 text-[15px] leading-relaxed text-ink/85">
+                <span className="mt-2 h-2 w-2 shrink-0 rounded-full border border-ink bg-clay" />
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
-        {/* the dashboard SAGE builds */}
-        {live && (
-          <div className="mt-6 w-full pb-44">
-            {dash.kind === "gen" && <DemoButtons slugs={dash.demos} />}
-            {dash.kind === "gen" ? (
-              <div className="hud flyin overflow-hidden p-1.5" key={history.length}>
-                <iframe
-                  title="Dashboard generated by SAGE"
-                  sandbox="allow-scripts"
-                  srcDoc={buildDashboardDoc(dash.html)}
-                  className="h-[56vh] min-h-[420px] w-full rounded-md"
-                />
-                <p className="px-3 pb-1.5 pt-2 text-right text-[10px] font-bold text-faded">
-                  ✿ designed live by SAGE, just for this question
-                </p>
-              </div>
-            ) : (
-              <WidgetGrid key={history.length} widgets={dash.widgets} />
-            )}
+function Projects() {
+  const [status, setStatus] = useState<string | null>(null);
+  const [tech, setTech] = useState<string | null>(null);
+  const [sel, setSel] = useState<Skill | null>(null);
+  const [simOpen, setSimOpen] = useState(false);
+
+  const rows = useMemo(
+    () =>
+      skills.filter(
+        (s) => (!status || s.status === status) && (!tech || s.tools.includes(tech)),
+      ),
+    [status, tech],
+  );
+  const sim = sel ? SIMS[sel.slug] : undefined;
+
+  return (
+    <div className="grid gap-4">
+      <div className="grid gap-4 xl:grid-cols-[2fr_3fr]">
+        <Card title="filter by status — click the donut">
+          <Donut filter={status} onSelect={setStatus} />
+        </Card>
+        <Card title="filter by technology">
+          <div className="flex flex-wrap gap-1.5">
+            {allTechs.map((t) => (
+              <Chip key={t} on={tech === t} onClick={() => setTech(tech === t ? null : t)}>
+                {t}
+              </Chip>
+            ))}
           </div>
-        )}
-      </main>
-
-      {/* command dock */}
-      {live && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-ink bg-paper/95 backdrop-blur">
-          <div className="mx-auto max-w-4xl px-5 py-3.5">
-            <div className="flex flex-wrap gap-2 pb-2.5">
-              {SUGGESTIONS.map((sug) => (
-                <button
-                  key={sug}
-                  onClick={() => ask(sug)}
-                  className="pill cursor-pointer bg-oat px-3.5 py-1.5 text-[11px] font-bold text-ink"
-                >
-                  {sug}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-3">
-              {mode === "voice" ? (
-                <button
-                  onClick={listen}
-                  disabled={busy}
-                  className={`pill flex-1 cursor-pointer py-3 text-sm font-extrabold uppercase tracking-[0.25em] ${
-                    orb === "listening" ? "bg-moss text-ink" : "bg-clay text-white"
-                  } disabled:opacity-40`}
-                >
-                  {orb === "listening" ? "listening…" : "🎙 tap to speak"}
-                </button>
-              ) : (
-                <form
-                  className="flex flex-1 items-center gap-3"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    ask(input);
-                  }}
-                >
-                  <input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask SAGE anything about Surya"
-                    aria-label="Ask SAGE"
-                    className="w-full rounded-full border-2 border-ink bg-linen px-5 py-3 text-sm placeholder:text-faded focus:outline-none focus:ring-2 focus:ring-clay"
-                  />
-                  <button
-                    type="submit"
-                    disabled={busy || !input.trim()}
-                    className="pill cursor-pointer bg-clay px-6 py-3 text-sm font-extrabold uppercase tracking-widest text-white disabled:opacity-40"
-                  >
-                    run
-                  </button>
-                </form>
-              )}
-              <button
-                onClick={() => {
-                  window.speechSynthesis?.cancel();
-                  setMode((m) => (m === "chat" ? "voice" : "chat"));
-                }}
-                disabled={!voiceOK}
-                title="Switch chat/voice"
-                className="pill cursor-pointer bg-linen px-3.5 py-3 text-sm disabled:opacity-30"
-              >
-                {mode === "chat" ? "🎙" : "💬"}
+        </Card>
+      </div>
+      <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
+        <Card
+          title={`projects grid — ${rows.length} of ${skills.length}`}
+          aside={
+            (status || tech) && (
+              <button onClick={() => { setStatus(null); setTech(null); }} className="cursor-pointer text-[11px] font-bold text-clay-deep underline underline-offset-2">
+                clear filters ✕
               </button>
-            </div>
+            )
+          }
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[10px] font-extrabold uppercase tracking-[0.15em] text-faded">
+                  <th className="pb-2 pr-3">project</th>
+                  <th className="pb-2 pr-3">status</th>
+                  <th className="pb-2">stack</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((s) => (
+                  <tr
+                    key={s.slug}
+                    onClick={() => setSel(s)}
+                    className={`cursor-pointer border-t-2 border-oat transition-colors hover:bg-oat ${sel?.slug === s.slug ? "bg-oat" : ""}`}
+                  >
+                    <td className="py-2.5 pr-3 font-bold">
+                      {s.name} {SIMS[s.slug] && <span className="text-clay-deep">▶</span>}
+                    </td>
+                    <td className="py-2.5 pr-3">
+                      <span className="rounded-full border-2 border-ink px-2 py-0.5 text-[10px] font-extrabold" style={{ background: STATUS_COLOR[s.status as Status] }}>
+                        {s.status}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-xs text-faded">{s.tools.slice(0, 3).join(" · ")}</td>
+                  </tr>
+                ))}
+                {rows.length === 0 && (
+                  <tr><td colSpan={3} className="py-6 text-center text-faded">No projects match these filters — clear one.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
+        </Card>
+        <Card title={sel ? "detail" : "detail — select a row"}>
+          {sel ? (
+            <>
+              <h3 className="font-display text-2xl font-extrabold">{sel.name}</h3>
+              <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-faded">{sel.tools.join(" · ")}</p>
+              <p className="mt-3 text-[15px] leading-relaxed text-ink/85">{sel.description}</p>
+              <p className="mt-2 text-sm leading-relaxed text-faded">{sel.detail}</p>
+              <div className="mt-4 flex flex-wrap gap-2.5">
+                {sim && (
+                  <button onClick={() => setSimOpen(true)} className="pill cursor-pointer bg-clay px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-white">
+                    ▶ run live demo
+                  </button>
+                )}
+                {sel.repo && (
+                  <a href={sel.repo} target="_blank" rel="noreferrer" className="pill bg-linen px-4 py-2 text-xs font-extrabold uppercase tracking-wider">
+                    code ↗
+                  </a>
+                )}
+              </div>
+              {sim && simOpen && (
+                <SimModal title={sim.title} onClose={() => setSimOpen(false)}>
+                  <sim.component />
+                </SimModal>
+              )}
+            </>
+          ) : (
+            <p className="text-sm leading-relaxed text-faded">
+              Click any row to see the full story. Rows marked ▶ include a live, playable demo.
+            </p>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function Skills() {
+  const groups = Object.entries(toolbox);
+  const [group, setGroup] = useState(groups[0][0]);
+  const items = toolbox[group as keyof typeof toolbox];
+  return (
+    <div className="grid gap-4 xl:grid-cols-[1fr_2fr]">
+      <Card title="categories">
+        <div className="space-y-2">
+          {groups.map(([g, its]) => (
+            <button
+              key={g}
+              onClick={() => setGroup(g)}
+              className={`pill block w-full cursor-pointer px-4 py-2.5 text-left text-sm font-bold capitalize ${group === g ? "bg-violet text-ink" : "bg-linen"}`}
+            >
+              {g}
+              <span className={`ml-2 text-[11px] font-semibold ${group === g ? "text-ink/70" : "text-faded"}`}>{its.length} tools</span>
+            </button>
+          ))}
         </div>
-      )}
+      </Card>
+      <div className="grid gap-4">
+        <Card title={`${group} — professional toolbox`}>
+          <div className="flex flex-wrap gap-2">
+            {items.map((t) => (
+              <span key={t} className="rounded-full border-2 border-ink bg-oat px-3.5 py-1.5 text-sm font-bold">
+                {t}
+              </span>
+            ))}
+          </div>
+        </Card>
+        <Card title="where each tech shows up (personal projects)">
+          <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+            {techFrequency.slice(0, 12).map((t) => (
+              <div key={t.tech} className="flex items-baseline justify-between gap-3 border-b border-oat pb-1.5 text-sm">
+                <span className="font-bold">{t.tech}</span>
+                <span className="text-right text-xs text-faded">{t.projects.join(", ")}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function Contact() {
+  return (
+    <div className="grid gap-4 xl:grid-cols-2">
+      <Card title="reach surya">
+        <p className="font-display text-3xl font-extrabold">Let's talk data.</p>
+        <div className="mt-4 space-y-2 text-[15px] font-semibold">
+          <p><a className="text-clay-deep underline decoration-2 underline-offset-4" href={`mailto:${profile.email}`}>{profile.email}</a></p>
+          <p><a className="text-clay-deep underline decoration-2 underline-offset-4" href={profile.github} target="_blank" rel="noreferrer">{profile.github.replace("https://", "")}</a></p>
+          <p className="text-faded">{profile.location}</p>
+        </div>
+      </Card>
+      <Card title="fastest way to evaluate him">
+        <ul className="space-y-2.5 text-sm leading-relaxed text-ink/85">
+          <li>1 — Skim the <strong>Overview</strong> KPIs and timeline.</li>
+          <li>2 — Open <strong>Projects</strong> and run the two live demos (▶).</li>
+          <li>3 — Email him. He responds fast.</li>
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+/* ---------------- shell ---------------- */
+
+export default function App() {
+  const [view, setView] = useState<View>("overview");
+  return (
+    <div className="mx-auto flex min-h-dvh max-w-7xl flex-col gap-4 p-4 sm:p-6 lg:flex-row">
+      {/* sidebar */}
+      <aside className="hud flex shrink-0 flex-row items-center gap-1 self-start p-3 lg:sticky lg:top-6 lg:w-56 lg:flex-col lg:items-stretch lg:gap-1.5 lg:p-4 max-lg:w-full max-lg:overflow-x-auto">
+        <div className="mr-2 lg:mb-3 lg:mr-0">
+          <p className="font-display text-xl font-black leading-none">
+            {profile.name.split(" ")[0]}<span className="text-clay-deep">.</span>
+          </p>
+          <p className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.15em] text-faded lg:block">
+            personal analytics
+          </p>
+        </div>
+        {NAV.map((n) => (
+          <button
+            key={n.key}
+            onClick={() => setView(n.key)}
+            className={`cursor-pointer whitespace-nowrap rounded-xl px-3.5 py-2 text-left text-sm font-bold transition-colors ${
+              view === n.key ? "border-2 border-ink bg-clay text-white shadow-[3px_3px_0_var(--color-ink)]" : "text-faded hover:bg-oat hover:text-ink"
+            }`}
+          >
+            <span className="mr-2">{n.icon}</span>
+            {n.label}
+          </button>
+        ))}
+        <div className="hidden flex-1 lg:block" />
+        <a
+          href={profile.github}
+          target="_blank"
+          rel="noreferrer"
+          className="hidden text-[11px] font-bold text-faded underline decoration-2 underline-offset-4 hover:text-ink lg:block"
+        >
+          github ↗
+        </a>
+      </aside>
+
+      {/* main */}
+      <main className="min-w-0 flex-1">
+        <header className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="font-display text-3xl font-black capitalize sm:text-4xl">{view}</h1>
+          <p className="text-xs font-semibold text-faded">
+            {profile.role} · {profile.location} · every number here is real
+          </p>
+        </header>
+        {view === "overview" && <Overview go={setView} />}
+        {view === "experience" && <Experience />}
+        {view === "projects" && <Projects />}
+        {view === "skills" && <Skills />}
+        {view === "contact" && <Contact />}
+        <footer className="py-6 text-center text-[11px] font-semibold text-faded">
+          © {new Date().getFullYear()} {profile.name} — a dashboard about the person who builds dashboards.
+        </footer>
+      </main>
     </div>
   );
 }
