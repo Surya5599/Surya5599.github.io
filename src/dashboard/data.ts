@@ -21,10 +21,11 @@ export const SPANS: Span[] = [
 ];
 
 // projects by status
-export const STATUS_ORDER = ["active", "shipped", "archived"] as const;
+export const STATUS_ORDER = ["active", "under construction", "shipped", "archived"] as const;
 export type Status = (typeof STATUS_ORDER)[number];
 export const STATUS_COLOR: Record<Status, string> = {
   active: "var(--color-moss)",
+  "under construction": "var(--color-amber)",
   shipped: "var(--color-clay)",
   archived: "var(--color-violet)",
 };
