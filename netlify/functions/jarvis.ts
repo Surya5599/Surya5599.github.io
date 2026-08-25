@@ -69,41 +69,46 @@ export const handler: Handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: "bad-request" }) };
   }
 
-  const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM + (persona ? `\nVisitor persona: ${persona}` : "") }] },
-        contents: messages.slice(-8).map((m) => ({
-          role: m.role,
-          // model turns carry only the spoken reply, not full dashboards
-          parts: [{ text: String(m.text).slice(0, 700) }],
-        })),
-        generationConfig: {
-          maxOutputTokens: 8192,
-          temperature: 0.75,
-          responseMimeType: "application/json",
-          responseSchema: RESPONSE_SCHEMA,
-        },
-      }),
-    },
-  );
+  // model calls are occasionally flaky (overload, truncated JSON) — retry once
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM + (persona ? `\nVisitor persona: ${persona}` : "") }] },
+          contents: messages.slice(-8).map((m) => ({
+            role: m.role,
+            // model turns carry only the spoken reply, not full dashboards
+            parts: [{ text: String(m.text).slice(0, 700) }],
+          })),
+          generationConfig: {
+            maxOutputTokens: 8192,
+            temperature: 0.75,
+            responseMimeType: "application/json",
+            responseSchema: RESPONSE_SCHEMA,
+          },
+        }),
+      },
+    );
 
-  if (!res.ok) {
-    console.error("gemini", res.status, await res.text());
-    return { statusCode: 502, body: JSON.stringify({ error: "model-unavailable" }) };
-  }
+    if (!res.ok) {
+      console.error("gemini", res.status, (await res.text()).slice(0, 300));
+      continue;
+    }
 
-  const data = await res.json();
-  const raw = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
-  try {
-    const out = JSON.parse(raw);
-    if (typeof out.reply !== "string" || typeof out.html !== "string") throw new Error();
-    out.demos = Array.isArray(out.demos) ? out.demos.filter((d: unknown) => d === "rshell" || d === "sketchboard") : [];
-    return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify(out) };
-  } catch {
-    return { statusCode: 502, body: JSON.stringify({ error: "bad-model-output" }) };
+    const data = await res.json();
+    const raw = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
+    try {
+      const out = JSON.parse(raw);
+      if (typeof out.reply !== "string" || typeof out.html !== "string") throw new Error();
+      out.demos = Array.isArray(out.demos) ? out.demos.filter((d: unknown) => d === "rshell" || d === "sketchboard") : [];
+      return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify(out) };
+    } catch {
+      console.error("gemini bad output", data?.candidates?.[0]?.finishReason, raw.slice(0, 200));
+      continue;
+    }
   }
+  return { statusCode: 502, body: JSON.stringify({ error: "model-unavailable" }) };
 };
