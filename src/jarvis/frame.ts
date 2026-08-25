@@ -12,16 +12,22 @@ export function buildDashboardDoc(html: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
-    --bg: #060a12;
-    --panel: rgba(11, 18, 32, 0.8);
-    --edge: #1c2c44;
-    --text: #e6f2f8;
-    --dim: #7d93a8;
-    --cyan: #58e6ff;
-    --violet: #9d8cff;
-    --amber: #ffc76a;
-    --green: #6ef2b0;
-    --font-display: "Rajdhani", "Avenir Next Condensed", "Trebuchet MS", sans-serif;
+    --bg: #fdfcf9;
+    --panel: #ffffff;
+    --edge: #1c1b1a;
+    --text: #1c1b1a;
+    --dim: #8a8579;
+    --rose: #c98d82;
+    --rose-deep: #b06a5d;
+    --mint: #8fbfa8;
+    --mauve: #b0a3c2;
+    --amber: #d9a441;
+    --cream: #f5f2ea;
+    /* legacy aliases so older generations still render */
+    --cyan: #b06a5d;
+    --violet: #b0a3c2;
+    --green: #8fbfa8;
+    --font-display: "Playfair Display", Georgia, serif;
     --font-sans: "Inter", -apple-system, "Segoe UI", sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   }
@@ -34,7 +40,7 @@ export function buildDashboardDoc(html: string): string {
     -webkit-font-smoothing: antialiased;
   }
   ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-thumb { background: var(--edge); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb { background: #d8d3c6; border-radius: 4px; }
 </style>
 </head>
 <body>

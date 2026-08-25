@@ -209,12 +209,14 @@ export default function App() {
   return (
     <div className="flex min-h-dvh flex-col">
       {/* HUD chrome */}
-      <header className="flex items-center justify-between px-5 py-4 font-mono text-[11px] text-faded sm:px-8">
-        <span>
-          <span className="text-clay">SAGE</span> — {profile.name.toLowerCase()}'s ai
+      <header className="flex items-center justify-between px-5 py-4 text-sm sm:px-8">
+        <span className="font-display text-2xl font-black tracking-tight">
+          SAGE<span className="text-clay-deep">.</span>
         </span>
-        <span className="hidden sm:block">sys: {live ? (offline ? "local core" : "gemini core") : "standby"}</span>
-        <a className="transition-colors hover:text-ink" href={profile.github} target="_blank" rel="noreferrer">
+        <span className="hidden font-mono text-[11px] text-faded sm:block">
+          {live ? (offline ? "● offline brain" : "● gemini brain") : "● standby"}
+        </span>
+        <a className="font-bold underline decoration-2 underline-offset-4 hover:text-clay-deep" href={profile.github} target="_blank" rel="noreferrer">
           github ↗
         </a>
       </header>
@@ -229,7 +231,7 @@ export default function App() {
         >
           <Orb state={orb} size={live ? 170 : 280} />
           {phase === "asleep" && (
-            <span className="absolute inset-0 flex items-center justify-center font-display text-sm font-semibold uppercase tracking-[0.35em] text-ink/90">
+            <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold uppercase tracking-[0.35em] text-ink">
               wake
             </span>
           )}
@@ -237,28 +239,28 @@ export default function App() {
 
         {phase === "asleep" && (
           <div className="fadein mt-6 text-center">
-            <h1 className="font-display text-4xl font-bold tracking-wide">S.A.G.E.</h1>
+            <h1 className="font-display text-5xl font-black tracking-tight">Meet <span className="text-clay-deep">SAGE</span>.</h1>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-faded">
-              Surya's Agentic Guide & Engineer. It knows his work, builds dashboards on request,
-              and runs his demos. Click the core.
+              Surya's Agentic Guide & Engineer. Ask it anything — it designs a fresh dashboard
+              for every question and runs his demos. Click the core to wake it.
             </p>
           </div>
         )}
 
         {phase === "mode" && (
           <div className="fadein mt-8 flex flex-col items-center gap-4">
-            <p className="font-mono text-xs uppercase tracking-[0.3em] text-faded">choose interface</p>
+            <p className="text-xs font-extrabold uppercase tracking-[0.3em] text-faded">how do you want to talk?</p>
             <div className="flex gap-4">
               <button
                 onClick={() => chooseMode("chat")}
-                className="hud cursor-pointer px-7 py-3.5 font-display text-sm font-semibold uppercase tracking-widest text-clay transition-transform hover:scale-105"
+                className="pill cursor-pointer bg-clay px-8 py-3.5 text-sm font-extrabold uppercase tracking-widest text-white"
               >
                 💬 Chat
               </button>
               <button
                 onClick={() => chooseMode("voice")}
                 disabled={!voiceOK}
-                className="hud cursor-pointer px-7 py-3.5 font-display text-sm font-semibold uppercase tracking-widest text-moss transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
+                className="pill cursor-pointer bg-moss px-8 py-3.5 text-sm font-extrabold uppercase tracking-widest text-ink disabled:cursor-not-allowed disabled:opacity-40"
               >
                 🎙 Voice
               </button>
@@ -270,7 +272,7 @@ export default function App() {
         {/* SAGE's spoken line */}
         {(phase === "persona" || live) && reply && (
           <p key={reply.slice(0, 24)} className="fadein mt-5 max-w-xl text-center text-[15px] leading-relaxed text-ink/90">
-            <span className="text-clay">◆ </span>
+            <span className="text-clay-deep">✿ </span>
             {reply}
           </p>
         )}
@@ -283,7 +285,7 @@ export default function App() {
               <button
                 key={p.key}
                 onClick={() => choosePersona(p.key, p.label)}
-                className="hud cursor-pointer px-5 py-2.5 font-display text-xs font-semibold uppercase tracking-widest text-ink/90 transition-transform hover:scale-105"
+                className="pill cursor-pointer bg-linen px-5 py-2.5 text-xs font-extrabold uppercase tracking-widest text-ink"
               >
                 {p.label}
               </button>
@@ -302,8 +304,8 @@ export default function App() {
                   srcDoc={buildDashboardDoc(dash.html)}
                   className="h-[64vh] min-h-[460px] w-full rounded-md"
                 />
-                <p className="px-2 pb-1 pt-1.5 text-right font-mono text-[10px] text-faded">
-                  ⚡ generated live by SAGE for this question
+                <p className="px-3 pb-1.5 pt-2 text-right text-[10px] font-bold text-faded">
+                  ✿ designed live by SAGE, just for this question
                 </p>
               </div>
             ) : (
@@ -316,14 +318,14 @@ export default function App() {
 
       {/* command dock */}
       {live && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-paper/90 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-ink bg-paper/95 backdrop-blur">
           <div className="mx-auto max-w-4xl px-5 py-3.5">
             <div className="flex flex-wrap gap-2 pb-2.5">
               {SUGGESTIONS.map((sug) => (
                 <button
                   key={sug}
                   onClick={() => ask(sug)}
-                  className="cursor-pointer rounded-full border border-hairline px-3 py-1.5 font-mono text-[11px] text-faded transition-colors hover:border-clay hover:text-ink"
+                  className="pill cursor-pointer bg-oat px-3.5 py-1.5 text-[11px] font-bold text-ink"
                 >
                   {sug}
                 </button>
@@ -334,8 +336,8 @@ export default function App() {
                 <button
                   onClick={listen}
                   disabled={busy}
-                  className={`flex-1 cursor-pointer rounded-lg py-3 font-display text-sm font-bold uppercase tracking-[0.25em] transition-colors ${
-                    orb === "listening" ? "bg-moss/20 text-moss" : "bg-clay/15 text-clay hover:bg-clay/25"
+                  className={`pill flex-1 cursor-pointer py-3 text-sm font-extrabold uppercase tracking-[0.25em] ${
+                    orb === "listening" ? "bg-moss text-ink" : "bg-clay text-white"
                   } disabled:opacity-40`}
                 >
                   {orb === "listening" ? "listening…" : "🎙 tap to speak"}
@@ -353,12 +355,12 @@ export default function App() {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask SAGE anything about Surya"
                     aria-label="Ask SAGE"
-                    className="w-full rounded-lg border border-hairline bg-linen px-4 py-3 text-sm placeholder:text-faded focus:border-clay focus:outline-none"
+                    className="w-full rounded-full border-2 border-ink bg-linen px-5 py-3 text-sm placeholder:text-faded focus:outline-none focus:ring-2 focus:ring-clay"
                   />
                   <button
                     type="submit"
                     disabled={busy || !input.trim()}
-                    className="cursor-pointer rounded-lg bg-clay px-5 py-3 font-display text-sm font-bold uppercase tracking-widest text-paper disabled:opacity-40"
+                    className="pill cursor-pointer bg-clay px-6 py-3 text-sm font-extrabold uppercase tracking-widest text-white disabled:opacity-40"
                   >
                     run
                   </button>
@@ -371,7 +373,7 @@ export default function App() {
                 }}
                 disabled={!voiceOK}
                 title="Switch chat/voice"
-                className="cursor-pointer rounded-lg border border-hairline px-3.5 py-3 text-sm text-faded transition-colors hover:border-clay hover:text-ink disabled:opacity-30"
+                className="pill cursor-pointer bg-linen px-3.5 py-3 text-sm disabled:opacity-30"
               >
                 {mode === "chat" ? "🎙" : "💬"}
               </button>

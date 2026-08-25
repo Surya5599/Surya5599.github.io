@@ -23,7 +23,7 @@ function Panel({ children, delay = 0, wide = false }: { children: React.ReactNod
 }
 
 function Title({ children }: { children: React.ReactNode }) {
-  return <p className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-clay">{children}</p>;
+  return <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">{children}</p>;
 }
 
 function ProjectPanel({ slug, delay }: { slug: string; delay: number }) {
@@ -41,7 +41,7 @@ function ProjectPanel({ slug, delay }: { slug: string; delay: number }) {
         {sim && (
           <button
             onClick={() => setSimOpen(true)}
-            className="cursor-pointer rounded bg-clay/15 px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wider text-clay transition-colors hover:bg-clay/25"
+            className="pill cursor-pointer bg-clay/25 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-ink transition-colors hover:bg-clay/40"
           >
             ▶ Run live demo
           </button>
@@ -51,7 +51,7 @@ function ProjectPanel({ slug, delay }: { slug: string; delay: number }) {
             href={skill.repo}
             target="_blank"
             rel="noreferrer"
-            className="rounded border border-hairline px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wider text-faded transition-colors hover:border-clay hover:text-ink"
+            className="pill bg-linen px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-ink"
           >
             Source ↗
           </a>
@@ -75,7 +75,7 @@ export function WidgetGrid({ widgets }: { widgets: Widget[] }) {
           case "stat":
             return (
               <Panel key={i} delay={d}>
-                <p className="font-display text-4xl font-bold text-clay">{w.value}</p>
+                <p className="font-display text-4xl font-extrabold text-ink">{w.value}</p>
                 <p className="mt-0.5 text-xs text-faded">{w.label}</p>
               </Panel>
             );
@@ -90,9 +90,9 @@ export function WidgetGrid({ widgets }: { widgets: Widget[] }) {
                         <span className="text-ink/85">{it.label}</span>
                         <span>{it.note ?? `${Math.round(it.value)}%`}</span>
                       </div>
-                      <div className="mt-1 h-1.5 rounded-full bg-oat">
+                      <div className="mt-1 h-2 rounded-full border border-ink/20 bg-oat">
                         <div
-                          className="barfill h-full rounded-full bg-gradient-to-r from-clay to-violet"
+                          className="barfill h-full rounded-full bg-gradient-to-r from-clay to-moss"
                           style={{ width: `${Math.min(100, Math.max(4, it.value))}%`, animationDelay: `${d + j * 90}ms` }}
                         />
                       </div>
@@ -108,7 +108,7 @@ export function WidgetGrid({ widgets }: { widgets: Widget[] }) {
                 <ul className="mt-2 space-y-1.5">
                   {w.items.slice(0, 8).map((it, j) => (
                     <li key={j} className="flex gap-2 text-sm text-ink/85">
-                      <span className="text-clay">▸</span>
+                      <span className="text-clay-deep">✿</span>
                       <span>{it}</span>
                     </li>
                   ))}
@@ -131,7 +131,7 @@ export function WidgetGrid({ widgets }: { widgets: Widget[] }) {
                 <div className="mt-3 space-y-3">
                   {experience.map((job) => (
                     <div key={job.company + job.period} className="flex gap-3">
-                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-clay" />
+                      <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border border-ink bg-clay" />
                       <div>
                         <p className="font-display text-sm font-bold">
                           {job.role} · {job.company}
@@ -149,10 +149,10 @@ export function WidgetGrid({ widgets }: { widgets: Widget[] }) {
               <Panel key={i} delay={d}>
                 <Title>reach surya</Title>
                 <p className="mt-2 font-mono text-sm">
-                  <a className="text-clay hover:underline" href={`mailto:${profile.email}`}>{profile.email}</a>
+                  <a className="text-clay-deep underline decoration-2 underline-offset-2" href={`mailto:${profile.email}`}>{profile.email}</a>
                 </p>
                 <p className="mt-1 font-mono text-sm">
-                  <a className="text-clay hover:underline" href={profile.github} target="_blank" rel="noreferrer">
+                  <a className="text-clay-deep underline decoration-2 underline-offset-2" href={profile.github} target="_blank" rel="noreferrer">
                     {profile.github.replace("https://", "")}
                   </a>
                 </p>

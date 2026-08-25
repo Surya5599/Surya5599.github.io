@@ -3,11 +3,11 @@ import { useEffect, useRef } from "react";
 export type OrbState = "asleep" | "idle" | "listening" | "thinking" | "speaking";
 
 const STATE_STYLE: Record<OrbState, { color: [number, number, number]; speed: number; pulse: number }> = {
-  asleep: { color: [90, 110, 130], speed: 0.15, pulse: 0.25 },
-  idle: { color: [88, 230, 255], speed: 0.4, pulse: 0.5 },
-  listening: { color: [110, 242, 176], speed: 0.7, pulse: 1.4 },
-  thinking: { color: [255, 199, 106], speed: 2.4, pulse: 0.9 },
-  speaking: { color: [88, 230, 255], speed: 1.1, pulse: 2.0 },
+  asleep: { color: [165, 160, 148], speed: 0.15, pulse: 0.25 },
+  idle: { color: [176, 106, 93], speed: 0.4, pulse: 0.5 },
+  listening: { color: [86, 148, 120], speed: 0.7, pulse: 1.4 },
+  thinking: { color: [200, 150, 60], speed: 2.4, pulse: 0.9 },
+  speaking: { color: [176, 106, 93], speed: 1.1, pulse: 2.0 },
 };
 
 export default function Orb({ state, size = 260 }: { state: OrbState; size?: number }) {
