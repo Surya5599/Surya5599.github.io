@@ -47,7 +47,7 @@ function Avatar() {
   // eye positions over the photo (fraction of the frame) — pupils track the cursor
   const EYES = [
     { left: 42.0, top: 45.0 },
-    { left: 60.0, top: 45.0 },
+    { left: 61.5, top: 45.0 },
   ];
   return (
     <div
