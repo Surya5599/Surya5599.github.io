@@ -18,6 +18,7 @@ export const profile = {
   location: "Los Angeles, CA",
   tagline:
     "Data engineer with 5+ years across ETL, data architecture, and BI — now building the agentic layer on top: Claude agents and skills, LangChain pipelines, and AI workflows that turn weeks of data onboarding into days.",
+  site: "https://www.surya-singh.com",
   github: "https://github.com/Surya5599",
   email: "surya.singhp59@gmail.com",
   about: [

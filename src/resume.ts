@@ -14,6 +14,7 @@ export function openResume() {
   body { font: 10.5pt/1.45 Helvetica, Arial, sans-serif; color: #1c1b1a; padding: 40px 48px; max-width: 820px; margin: 0 auto; }
   h1 { font: 800 24pt Georgia, serif; }
   .sub { color: #6e6e73; margin: 3px 0 14px; font-size: 9.5pt; }
+  .sub a { color: #6e6e73; text-decoration: none; }
   h2 { font: 800 10pt Helvetica; text-transform: uppercase; letter-spacing: 1.5px; color: #b06a5d; border-bottom: 1.5px solid #1c1b1a; padding-bottom: 3px; margin: 14px 0 7px; }
   .job { margin-bottom: 9px; }
   .job header { display: flex; justify-content: space-between; font-weight: 700; }
@@ -26,7 +27,7 @@ export function openResume() {
   @media print { body { padding: 24px 32px; } }
 </style></head><body>
 <h1>Surya Singh</h1>
-<p class="sub">${profile.role} · ${profile.location} · ${profile.email} · ${profile.github.replace("https://", "")} · live dashboard: this site</p>
+<p class="sub">${profile.role} · ${profile.location} · <a href="mailto:${profile.email}">${profile.email}</a> · <a href="${profile.github}">${profile.github.replace("https://", "")}</a> · live dashboard: <a href="${profile.site}">${profile.site.replace("https://", "")}</a></p>
 <h2>Summary</h2>
 <p>${profile.tagline}</p>
 <h2>Experience</h2>
