@@ -20,6 +20,7 @@ export const profile = {
     "Data engineer with 5+ years across ETL, data architecture, and BI — now building the agentic layer on top: Claude agents and skills, LangChain pipelines, and AI workflows that turn weeks of data onboarding into days.",
   site: "https://www.surya-singh.com",
   github: "https://github.com/Surya5599",
+  linkedin: "https://www.linkedin.com/in/surya-psingh/",
   email: "surya.singhp59@gmail.com",
   about: [
     "At Oliver Wight I build agentic data tooling: Claude-based skills that let business advisors query client data directly, an agent pipeline that categorizes incoming client data, runs the ETL, and flags quality issues with human-in-the-loop review (client onboarding went from weeks to days), and a LangChain + AgentScope help bot with persistent cross-session memory.",

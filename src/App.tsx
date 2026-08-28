@@ -559,6 +559,48 @@ function Skills() {
   );
 }
 
+// Brand marks as inline SVG — no icon dependency, inherits currentColor.
+function GithubIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={className} fill="currentColor">
+      <path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.438 9.8 8.205 11.385.6.11.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.725-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.086 1.838 1.238 1.838 1.238 1.07 1.834 2.807 1.304 3.492.997.108-.775.42-1.305.763-1.605-2.665-.303-5.467-1.334-5.467-5.93 0-1.31.468-2.38 1.235-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.233 1.91 1.233 3.22 0 4.61-2.807 5.624-5.48 5.92.43.372.814 1.102.814 2.222 0 1.606-.015 2.9-.015 3.294 0 .318.216.69.825.573C20.565 22.295 24 17.795 24 12.5 24 5.87 18.627.5 12 .5z" />
+    </svg>
+  );
+}
+
+function LinkedinIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={className} fill="currentColor">
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+  );
+}
+
+// Icon row under the name: github + linkedin.
+function SocialLinks() {
+  const links = [
+    { href: profile.github, label: "GitHub", Icon: GithubIcon },
+    { href: profile.linkedin, label: "LinkedIn", Icon: LinkedinIcon },
+  ];
+  return (
+    <div className="mt-1.5 flex items-center gap-2 lg:justify-center">
+      {links.map(({ href, label, Icon }) => (
+        <a
+          key={label}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          title={label}
+          aria-label={label}
+          className="rounded-lg border-2 border-transparent p-1 text-faded transition-colors hover:border-ink hover:bg-oat hover:text-ink"
+        >
+          <Icon className="h-4 w-4" />
+        </a>
+      ))}
+    </div>
+  );
+}
+
 function Contact() {
   return (
     <div className="grid gap-4 xl:grid-cols-2">
@@ -567,6 +609,7 @@ function Contact() {
         <div className="mt-4 space-y-2 text-[15px] font-semibold">
           <p><a className="text-clay-deep underline decoration-2 underline-offset-4" href={`mailto:${profile.email}`}>{profile.email}</a></p>
           <p><a className="text-clay-deep underline decoration-2 underline-offset-4" href={profile.github} target="_blank" rel="noreferrer">{profile.github.replace("https://", "")}</a></p>
+          <p><a className="text-clay-deep underline decoration-2 underline-offset-4" href={profile.linkedin} target="_blank" rel="noreferrer">{profile.linkedin.replace("https://", "").replace(/\/$/, "")}</a></p>
           <p className="text-faded">{profile.location}</p>
         </div>
       </Card>
@@ -659,6 +702,7 @@ export default function App() {
     { label: "download resume (PDF)", hint: "print", act: openResume },
     { label: "email surya", hint: "contact", act: () => (window.location.href = `mailto:${profile.email}`) },
     { label: "github profile", hint: "link", act: () => window.open(profile.github, "_blank") },
+    { label: "linkedin profile", hint: "link", act: () => window.open(profile.linkedin, "_blank") },
     { label: "habicard.com", hint: "link", act: () => window.open("https://habicard.com", "_blank") },
     { label: "universalshelter.org", hint: "link", act: () => window.open("https://universalshelter.org", "_blank") },
   ];
@@ -676,6 +720,7 @@ export default function App() {
             <p className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.15em] text-faded lg:block">
               personal analytics
             </p>
+            <SocialLinks />
           </div>
         </div>
         {NAV.map((n) => (
