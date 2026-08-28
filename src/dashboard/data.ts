@@ -4,10 +4,10 @@ import { skills, experience, toolbox, type Skill, type Job } from "../data/profi
 // src/data/profile.ts — update that file and every chart follows.
 
 export const KPIS = [
-  { label: "years in data engineering", value: 5, suffix: "+" },
-  { label: "daily dashboard users", value: 10000, suffix: "+" },
-  { label: "reports migrated off legacy", value: 500, suffix: "+" },
-  { label: "data retrieval speedup", value: 16, suffix: "×" },
+  { label: "years in data engineering", value: 5, suffix: "+", note: "Infosys 2021–2024, Oliver Wight since" },
+  { label: "daily users on dashboards I built", value: 10000, suffix: "+", note: "Spotfire over SQL, Oracle and Redshift, at Infosys" },
+  { label: "legacy reports migrated", value: 500, suffix: "+", note: "with Python and REST automation, not by hand" },
+  { label: "faster data retrieval", value: 16, suffix: "×", note: "after re-tuning the Oracle Data Integrator pipelines" },
 ];
 
 // career timeline (fractional years for the gantt); one span per company

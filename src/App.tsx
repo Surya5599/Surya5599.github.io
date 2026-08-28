@@ -1,88 +1,50 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { profile, education, roles } from "./data/profile";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { profile, education } from "./data/profile";
 import { KPIS, SPANS, skills, toolbox, techFrequency, allTechs, categoryCounts, STATUS_COLOR, type Skill, type Status } from "./dashboard/data";
 import { CountUp, Gantt, Donut, Bars } from "./dashboard/charts";
 import SimModal from "./SimModal";
 import { SIMS } from "./sims";
 import { useLive, relTime } from "./live";
 import { openResume } from "./resume";
+import { Card, Chip, Reveal } from "./ui";
+import { Intro } from "./Intro";
+import { Avatar } from "./Avatar";
+import { GithubIcon, LinkedinIcon } from "./icons";
 
-type View = "overview" | "experience" | "projects" | "skills" | "contact";
+type View = "home" | "overview" | "experience" | "projects" | "skills" | "contact";
 
-const NAV: { key: View; label: string; icon: string }[] = [
-  { key: "overview", label: "Overview", icon: "◫" },
-  { key: "experience", label: "Experience", icon: "▤" },
-  { key: "projects", label: "Personal Projects", icon: "✦" },
-  { key: "skills", label: "Skills", icon: "❋" },
-  { key: "contact", label: "Contact", icon: "✉" },
+const NAV: { key: Exclude<View, "home">; label: string }[] = [
+  { key: "overview", label: "Overview" },
+  { key: "experience", label: "Experience" },
+  { key: "projects", label: "Personal Projects" },
+  { key: "skills", label: "Skills" },
+  { key: "contact", label: "Contact" },
 ];
 
-// the photo subtly shifts and tilts toward the cursor — a gaze that follows
-function Avatar() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [t, setT] = useState({ x: 0, y: 0 });
+// Drawn nav icons, one stroke weight — so they sit with the brand marks
+// instead of borrowing whatever each platform renders for a unicode glyph.
+const NAV_ICON: Record<Exclude<View, "home">, string> = {
+  overview: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
+  experience: "M3 8h18v11H3zM9 8V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V8M3 13h18",
+  projects: "M12 3l8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9",
+  skills: "M12 3l8 4.5-8 4.5-8-4.5zM4.5 12L12 16.2 19.5 12M4.5 16.2L12 20.4l7.5-4.2",
+  contact: "M3 6h18v12H3zM3.5 6.8l8.5 6 8.5-6",
+};
 
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0;
-    const onMove = (e: MouseEvent) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const el = ref.current;
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        const dx = e.clientX - (r.left + r.width / 2);
-        const dy = e.clientY - (r.top + r.height / 2);
-        const d = Math.hypot(dx, dy) || 1;
-        // saturate quickly so even nearby movement reads as a glance
-        const k = Math.min(1, d / 260);
-        setT({ x: (dx / d) * k, y: (dy / d) * k });
-      });
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  // eye positions over the photo (fraction of the frame) — pupils track the cursor
-  const EYES = [
-    { left: 42.0, top: 45.0 },
-    { left: 61.5, top: 45.0 },
-  ];
+function NavIcon({ view, className = "" }: { view: Exclude<View, "home">; className?: string }) {
   return (
-    <div
-      ref={ref}
-      className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-ink shadow-[2px_2px_0_var(--color-ink)] lg:h-auto lg:w-full lg:aspect-square lg:rounded-2xl lg:shadow-[4px_4px_0_var(--color-ink)]"
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <img src="/surya.jpg" alt="Surya Singh" className="h-full w-full object-cover" />
-      {EYES.map((e, i) => (
-        <span
-          key={i}
-          className="absolute flex items-center justify-center rounded-full"
-          style={{
-            left: `${e.left}%`,
-            top: `${e.top}%`,
-            width: "8.5%",
-            height: "5.5%",
-            transform: "translate(-50%, -50%)",
-            background: "#e9e0d0",
-            boxShadow: "inset 0 0 1px rgba(0,0,0,0.55)",
-          }}
-        >
-          <span
-            className="rounded-full transition-transform duration-100 ease-out"
-            style={{
-              width: "58%",
-              height: "66%",
-              background: "#241f1c",
-              transform: `translate(${t.x * 3.4}px, ${t.y * 2.2}px)`,
-            }}
-          />
-        </span>
-      ))}
-    </div>
+      <path d={NAV_ICON[view]} />
+    </svg>
   );
 }
 
@@ -97,37 +59,6 @@ function Spark({ values }: { values: number[] }) {
         <circle key={i} cx={(i / (values.length - 1)) * w} cy={h - 3 - (v / max) * (h - 8)} r="2" fill="var(--color-ink)" />
       ))}
     </svg>
-  );
-}
-
-const BASIS_STYLE: Record<string, string> = {
-  "by profession": "bg-clay text-white",
-  "by shipped projects": "bg-moss text-ink",
-  published: "bg-violet text-ink",
-};
-
-function RolesStrip({ go }: { go: (v: View) => void }) {
-  return (
-    <section className="hud flyin p-5">
-      <h2 className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">
-        the hats — and the evidence for each
-      </h2>
-      <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-5">
-        {roles.map((r) => (
-          <button
-            key={r.title}
-            onClick={() => go(r.goto)}
-            className="cursor-pointer rounded-xl border-2 border-ink bg-linen p-3 text-left shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
-          >
-            <p className="text-sm font-extrabold leading-tight">{r.title}</p>
-            <span className={`mt-1.5 inline-block rounded-full border border-ink px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${BASIS_STYLE[r.basis]}`}>
-              {r.basis}
-            </span>
-            <p className="mt-1.5 text-[11px] font-semibold leading-snug text-faded">{r.proof}</p>
-          </button>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -159,8 +90,8 @@ const FEATURED: { slug: string; tagline: string; links: { label: string; url: st
 function Featured({ go }: { go: () => void }) {
   return (
     <section>
-      <div className="mb-2.5 flex items-baseline justify-between">
-        <h2 className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">✦ now shipping</h2>
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">now shipping</h2>
         <button onClick={go} className="cursor-pointer text-[11px] font-bold text-clay-deep underline underline-offset-2">
           all projects →
         </button>
@@ -170,25 +101,35 @@ function Featured({ go }: { go: () => void }) {
           const skill = skills.find((k) => k.slug === f.slug);
           if (!skill) return null;
           return (
-            <div key={f.slug} className="hud flyin flex flex-col p-5" style={{ animationDelay: `${i * 90}ms` }}>
+            <Card key={f.slug} className="flex flex-col" delay={Math.min(i, 3) * 90}>
               <h3 className="font-display text-2xl font-extrabold">{skill.name}</h3>
               <p className="mt-1.5 flex-1 text-sm leading-relaxed text-ink/80">{f.tagline}</p>
-              <div className="mt-3.5 flex flex-wrap gap-2">
-                {f.links.map((l, j) => (
-                  <a
-                    key={l.url}
-                    href={l.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`pill px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider ${
-                      j === 0 ? "bg-clay text-white" : "bg-oat text-ink"
-                    }`}
-                  >
-                    {l.label} ↗
-                  </a>
-                ))}
+              <div className="mt-4 flex flex-wrap items-center gap-x-3.5 gap-y-2">
+                {f.links.map((l, j) =>
+                  j === 0 ? (
+                    <a
+                      key={l.url}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="pill bg-clay px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-white"
+                    >
+                      {l.label} ↗
+                    </a>
+                  ) : (
+                    <a
+                      key={l.url}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] font-bold text-faded underline decoration-2 underline-offset-4 transition-colors hover:text-ink"
+                    >
+                      {l.label} ↗
+                    </a>
+                  ),
+                )}
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>
@@ -200,7 +141,7 @@ function LiveStrip() {
   const live = useLive();
   if (!live.ok) return null;
   return (
-    <section className="hud flyin flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3 text-xs font-bold">
+    <section className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t-2 border-ink/12 px-1 pt-3 text-xs font-bold">
       <span className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">
         <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-moss" /> live from github
       </span>
@@ -264,81 +205,70 @@ function CommandPalette({ items, onClose }: { items: PaletteItem[]; onClose: () 
   );
 }
 
-function Card({ title, aside, children, className = "" }: { title?: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
-  return (
-    <section className={`hud flyin p-5 ${className}`}>
-      {(title || aside) && (
-        <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          {title && <h2 className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-clay-deep">{title}</h2>}
-          {aside}
-        </header>
-      )}
-      {children}
-    </section>
-  );
-}
-
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`pill cursor-pointer px-3 py-1 text-[11px] font-extrabold ${on ? "bg-moss text-ink" : "bg-linen text-faded"}`}
-    >
-      {children}
-    </button>
-  );
-}
-
 /* ---------------- views ---------------- */
 
 function Overview({ go }: { go: (v: View) => void }) {
   const [role, setRole] = useState<number | null>(null);
   return (
-    <div className="grid gap-4">
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        {KPIS.map((k, i) => (
-          <Card key={k.label} className="!p-4" >
-            <p className="font-display text-4xl font-extrabold text-ink" style={{ animationDelay: `${i * 80}ms` }}>
-              <CountUp to={k.value} suffix={k.suffix} />
-            </p>
-            <p className="mt-1 text-xs font-semibold text-faded">{k.label}</p>
+    // three bands, not nine stacked panels: the claim, the proof, the analytics
+    <div className="grid gap-10">
+      <div className="grid gap-3">
+        <p className="max-w-2xl text-[15px] font-semibold leading-relaxed text-faded">
+          The measurable version. Every number says where it came from, and every project links to the thing
+          itself — so you can check any of it.
+        </p>
+        {/* one panel with hairline cells — four bordered boxes was four times
+            the frame for one row of numbers */}
+        <Reveal assemble className="hud-flat grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+          {KPIS.map((k, i) => (
+            <div
+              key={k.label}
+              className={`p-4 ${i % 2 === 1 ? "sm:border-l-2 sm:border-ink/12" : ""} ${
+                i > 0 ? "border-t-2 border-ink/12 sm:border-t-0" : ""
+              } ${i >= 2 ? "sm:border-t-2 sm:border-ink/12 xl:border-t-0" : ""} ${
+                i > 0 ? "xl:border-l-2 xl:border-ink/12" : ""
+              }`}
+            >
+              <p className="font-display text-4xl font-extrabold text-ink" style={{ animationDelay: `${i * 80}ms` }}>
+                <CountUp to={k.value} suffix={k.suffix} />
+              </p>
+              <p className="mt-1 text-[13px] font-bold leading-snug">{k.label}</p>
+              <p className="mt-1.5 text-[11px] font-semibold leading-snug text-faded">{k.note}</p>
+            </div>
+          ))}
+        </Reveal>
+      </div>
+
+      <div className="grid gap-5">
+        <Featured go={() => go("projects")} />
+        <LiveStrip />
+      </div>
+
+      <div className="grid gap-4">
+        <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
+          <Card className="flex flex-col" title="where I've worked" aside={<button onClick={() => go("experience")} className="text-[11px] font-bold text-clay-deep underline underline-offset-2 cursor-pointer">open experience →</button>}>
+            <div className="flex flex-1 flex-col justify-center gap-2">
+              <Gantt selected={role} onSelect={(i) => setRole(role === i ? null : i)} />
+              {role !== null && (
+                <p className="rounded-xl bg-oat p-3 text-sm leading-relaxed">
+                  <strong>{SPANS[role].role} @ {SPANS[role].company}</strong> — {SPANS[role].jobs[0].bullets[0]}
+                </p>
+              )}
+            </div>
           </Card>
-        ))}
-      </div>
-      <RolesStrip go={go} />
-      <Featured go={() => go("projects")} />
-      <LiveStrip />
-      <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
-        <Card title="career timeline" aside={<button onClick={() => go("experience")} className="text-[11px] font-bold text-clay-deep underline underline-offset-2 cursor-pointer">open experience →</button>}>
-          <Gantt selected={role} onSelect={(i) => setRole(role === i ? null : i)} />
-          {role !== null && (
-            <p className="mt-2 rounded-xl border-2 border-ink bg-oat p-3 text-sm leading-relaxed">
-              <strong>{SPANS[role].role} @ {SPANS[role].company}</strong> — {SPANS[role].jobs[0].bullets[0]}
+          <Card title="what I've built" aside={<button onClick={() => go("projects")} className="text-[11px] font-bold text-clay-deep underline underline-offset-2 cursor-pointer">open projects →</button>}>
+            <Donut filter={null} onSelect={() => go("projects")} />
+            <p className="mt-3 text-sm leading-relaxed text-faded">
+              {skills.length} personal builds across mobile, web, systems, and hardware — five of them
+              run live on this site.
             </p>
-          )}
-        </Card>
-        <Card title="projects by status" aside={<button onClick={() => go("projects")} className="text-[11px] font-bold text-clay-deep underline underline-offset-2 cursor-pointer">open projects →</button>}>
-          <Donut filter={null} onSelect={() => go("projects")} />
-          <p className="mt-3 text-sm leading-relaxed text-faded">
-            {skills.length} personal builds across mobile, web, systems, and hardware — five of them
-            run live in this site.
-          </p>
-        </Card>
-      </div>
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card title="toolbox coverage by category">
+          </Card>
+        </div>
+        <Card quiet title="tools I've worked with">
           <Bars
             items={categoryCounts.map((c) => ({ label: c.category, value: c.count, note: `${c.count} tools` }))}
             max={Math.max(...categoryCounts.map((c) => c.count))}
           />
-        </Card>
-        <Card title="summary">
-          <p className="text-[15px] leading-relaxed text-ink/85">{profile.tagline}</p>
-          <p className="mt-3 text-sm leading-relaxed text-faded">
-            Currently: agentic data tooling at Oliver Wight — Claude agents & skills in production,
-            client onboarding cut from weeks to days. Previously: enterprise BI at Infosys for
-            10,000+ daily users. {education}.
-          </p>
         </Card>
       </div>
     </div>
@@ -559,23 +489,6 @@ function Skills() {
   );
 }
 
-// Brand marks as inline SVG — no icon dependency, inherits currentColor.
-function GithubIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className={className} fill="currentColor">
-      <path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.438 9.8 8.205 11.385.6.11.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.725-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.086 1.838 1.238 1.838 1.238 1.07 1.834 2.807 1.304 3.492.997.108-.775.42-1.305.763-1.605-2.665-.303-5.467-1.334-5.467-5.93 0-1.31.468-2.38 1.235-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.233 1.91 1.233 3.22 0 4.61-2.807 5.624-5.48 5.92.43.372.814 1.102.814 2.222 0 1.606-.015 2.9-.015 3.294 0 .318.216.69.825.573C20.565 22.295 24 17.795 24 12.5 24 5.87 18.627.5 12 .5z" />
-    </svg>
-  );
-}
-
-function LinkedinIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className={className} fill="currentColor">
-      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-    </svg>
-  );
-}
-
 // Icon row under the name: github + linkedin.
 function SocialLinks() {
   const links = [
@@ -583,7 +496,7 @@ function SocialLinks() {
     { href: profile.linkedin, label: "LinkedIn", Icon: LinkedinIcon },
   ];
   return (
-    <div className="mt-1.5 flex items-center gap-2 lg:justify-center">
+    <div className="flex shrink-0 items-center gap-1">
       {links.map(({ href, label, Icon }) => (
         <a
           key={label}
@@ -629,7 +542,21 @@ function Contact() {
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function App() {
-  const [view, setView] = useState<View>("overview");
+  const [view, setView] = useState<View>("home");
+  // Home is the scroll narrative and nothing else. No nav, no page title — the
+  // furniture only appears once the visitor has chosen a tab.
+  // Home hides the furniture — until the closing panel, where the visitor is
+  // picking a destination and wants the tabs in reach.
+  const [introAtEnd, setIntroAtEnd] = useState(false);
+  const onIntroEnd = useCallback((atEnd: boolean) => setIntroAtEnd(atEnd), []);
+  const onHome = view === "home";
+  const navHidden = onHome && !introAtEnd;
+
+  useEffect(() => {
+    if (view === "home") setIntroAtEnd(false);
+    // a view switch is a new page as far as the reader is concerned
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [view]);
   const [globalSim, setGlobalSim] = useState<{ slug: string; title: string } | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [tourCaption, setTourCaption] = useState<string | null>(null);
@@ -708,59 +635,60 @@ export default function App() {
   ];
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-7xl flex-col gap-4 p-4 sm:p-6 lg:flex-row">
-      {/* sidebar */}
-      <aside className="hud flex shrink-0 flex-row items-center gap-1 self-start p-3 lg:sticky lg:top-6 lg:w-56 lg:flex-col lg:items-stretch lg:gap-1.5 lg:p-4 max-lg:w-full max-lg:overflow-x-auto">
-        <div className="mr-2 flex items-center gap-3 lg:mb-3 lg:mr-0 lg:w-full lg:flex-col lg:items-stretch lg:gap-3 lg:pt-1 lg:text-center">
-          <Avatar />
-          <div>
-            <p className="font-display text-xl font-black leading-none lg:text-2xl">
-              {profile.name.split(" ")[0]}<span className="text-clay-deep">.</span>
-            </p>
-            <p className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.15em] text-faded lg:block">
-              personal analytics
-            </p>
-            <SocialLinks />
-          </div>
-        </div>
+    <div className="mx-auto flex min-h-dvh max-w-7xl flex-col gap-4 p-4 sm:p-6">
+      {/* top bar — the nav used to be a left rail; it is horizontal now so the
+          split-screen intro owns the full width */}
+      <nav
+        aria-hidden={navHidden}
+        inert={navHidden}
+        className={`hud sticky top-4 z-50 flex items-center gap-1 overflow-x-auto p-2.5 transition-opacity duration-500 sm:top-6 ${
+          navHidden ? "pointer-events-none opacity-0" : "opacity-100"
+        }`}
+      >
+        <button
+          onClick={() => setView("home")}
+          className="mr-2 flex shrink-0 cursor-pointer items-center gap-2.5 pl-1"
+          title="Back to the start"
+        >
+          <Avatar className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-ink" />
+          <span className="font-display text-lg font-black leading-none">
+            {profile.name.split(" ")[0]}<span className="text-clay-deep">.</span>
+          </span>
+        </button>
+
         {NAV.map((n) => (
           <button
             key={n.key}
             onClick={() => setView(n.key)}
-            className={`cursor-pointer whitespace-nowrap rounded-xl px-3.5 py-2 text-left text-sm font-bold transition-colors ${
+            className={`flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-bold transition-colors ${
               view === n.key ? "border-2 border-ink bg-clay text-white shadow-[3px_3px_0_var(--color-ink)]" : "text-faded hover:bg-oat hover:text-ink"
             }`}
           >
-            <span className="mr-2">{n.icon}</span>
+            <NavIcon view={n.key} className="h-4 w-4 shrink-0" />
             {n.label}
           </button>
         ))}
-        <div className="hidden flex-1 lg:block" />
+
+        <div className="flex-1" />
+        <SocialLinks />
         <button
           onClick={openResume}
-          className="pill hidden cursor-pointer bg-clay px-3 py-2 text-[11px] font-extrabold uppercase tracking-wider text-white lg:block"
+          className="pill ml-2 hidden shrink-0 cursor-pointer bg-clay px-3 py-2 text-[11px] font-extrabold uppercase tracking-wider text-white sm:block"
         >
-          ⬇ resume (pdf)
+          resume (pdf)
         </button>
-        <a
-          href={profile.github}
-          target="_blank"
-          rel="noreferrer"
-          className="hidden text-[11px] font-bold text-faded underline decoration-2 underline-offset-4 hover:text-ink lg:block"
-        >
-          github ↗
-        </a>
-      </aside>
+      </nav>
 
       {/* main */}
       <main className="min-w-0 flex-1">
+        {!onHome && (
         <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h1 className="font-display text-3xl font-black capitalize sm:text-4xl">{NAV.find((n) => n.key === view)?.label ?? view}</h1>
           <div className="flex items-center gap-3">
             <button
               onClick={runTour}
               disabled={tourCaption !== null}
-              className="pill cursor-pointer bg-amber/80 px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider disabled:opacity-50"
+              className="pill cursor-pointer bg-oat px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider disabled:opacity-50"
             >
               ▶ 30-sec tour
             </button>
@@ -773,15 +701,17 @@ export default function App() {
             </button>
           </div>
         </header>
+        )}
+        {view === "home" && <Intro go={setView} onEnd={onIntroEnd} />}
         {view === "overview" && <Overview go={setView} />}
         {view === "experience" && <Experience />}
         {view === "projects" && <Projects />}
         {view === "skills" && <Skills />}
         {view === "contact" && <Contact />}
-        <footer className="py-6 text-center text-[11px] font-semibold text-faded">
+        {!onHome && <footer className="py-6 text-center text-[11px] font-semibold text-faded">
           © {new Date().getFullYear()} {profile.name} — a dashboard about the person who builds dashboards.
           <span className="ml-2 text-faded/70">psst: try typing sudo.</span>
-        </footer>
+        </footer>}
       </main>
 
       {globalSim && SIMS[globalSim.slug] && (

@@ -35,7 +35,9 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  /* `clip`, not `hidden`: hidden makes body a scroll container and breaks
+     position: sticky for the pinned intro */
+  overflow-x: clip;
 }
 
 ::selection {
@@ -43,29 +45,56 @@ body {
   color: #fff;
 }
 
-/* soft-brutal card: cream, thick ink border, hard offset shadow */
-.hud {
-  position: relative;
-  background: var(--color-linen);
-  border: 2px solid var(--color-ink);
-  border-radius: 18px;
-  box-shadow: 5px 5px 0 var(--color-ink);
+/* the surfaces we did not draw still belong to the palette */
+html {
+  caret-color: var(--color-clay-deep);
+  scrollbar-color: var(--color-clay) transparent;
+  scrollbar-width: thin;
 }
 
-/* pill button variant */
-.pill {
-  border: 2px solid var(--color-ink);
-  border-radius: 999px;
-  box-shadow: 3px 3px 0 var(--color-ink);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+:focus-visible {
+  outline: 2px solid var(--color-clay-deep);
+  outline-offset: 2px;
 }
-.pill:hover:not(:disabled) {
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 var(--color-ink);
-}
-.pill:active:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--color-ink);
+
+/* Component classes live in the components layer so a Tailwind utility can
+   still override them — `lg:sticky` on the sidebar could not beat a bare
+   `.hud { position: relative }` sitting after the utilities layer. */
+@layer components {
+  /* soft-brutal card: cream, thick ink border, hard offset shadow.
+     Tier 1 — earns the lift. Reserved for content you read or act on. */
+  .hud {
+    position: relative;
+    background: var(--color-linen);
+    border: 2px solid var(--color-ink);
+    border-radius: 18px;
+    box-shadow: 5px 5px 0 var(--color-ink);
+  }
+
+  /* Tier 2 — same paper and line, no lift. Supporting panels that should
+     sit back so the tier-1 cards read as the page's foreground. */
+  .hud-flat {
+    position: relative;
+    background: var(--color-linen);
+    border: 2px solid var(--color-ink);
+    border-radius: 18px;
+  }
+
+  /* pill button variant */
+  .pill {
+    border: 2px solid var(--color-ink);
+    border-radius: 999px;
+    box-shadow: 3px 3px 0 var(--color-ink);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .pill:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--color-ink);
+  }
+  .pill:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--color-ink);
+  }
 }
 
 @keyframes flyin {
@@ -80,6 +109,74 @@ body {
 }
 .flyin {
   animation: flyin 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+
+/* ---------------- scroll reveals ----------------
+   Pending is only ever set by script, so a page that fails to run its JS
+   still shows every word. */
+
+[data-reveal="pending"] {
+  opacity: 0;
+}
+
+/* Supporting reveal: a short rise, nothing more. Every panel on the page uses
+   this, so it has to stay quiet — the authored moment is `assemble`, below. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+[data-reveal="shown"] {
+  animation: rise 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The focal moment: the first panel of the dashboard is built rather than
+   faded. The ink frame wipes open, then the hard offset shadow lands last —
+   the way a stamp does. This is the site's whole visual signature arriving in
+   the right order, so it happens exactly once per page. */
+@keyframes assemble {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0 round 18px);
+    box-shadow: 0 0 0 var(--color-ink);
+  }
+  35% {
+    opacity: 1;
+  }
+  70% {
+    clip-path: inset(0 0 0 0 round 18px);
+    box-shadow: 0 0 0 var(--color-ink);
+  }
+  85% {
+    box-shadow: 8px 8px 0 var(--color-ink);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0 round 18px);
+    box-shadow: 5px 5px 0 var(--color-ink);
+  }
+}
+[data-reveal="shown"][data-assemble] {
+  animation: assemble 0.78s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The scroll cue retires itself the moment it has been obeyed. */
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+.nudge {
+  animation: nudge 1.9s ease-in-out infinite;
 }
 
 @keyframes barfill {
@@ -121,11 +218,31 @@ body {
   .flyin,
   .barfill,
   .fadein,
-  .caret::after {
+  .nudge,
+  .caret::after,
+  [data-reveal="shown"],
+  [data-reveal="shown"][data-assemble] {
     animation: none;
+  }
+  [data-reveal] {
+    opacity: 1;
+    clip-path: none;
   }
   * {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* visually hidden, still read aloud */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

@@ -1,15 +1,45 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SPANS, CAREER_START, CAREER_END, STATUS_COLOR, statusCounts, type Span } from "./data";
 
 /* ---------- count-up KPI number ---------- */
 
+function useCountVisible(ref: React.RefObject<HTMLElement | null>) {
+  const [shown, setShown] = useState(
+    () => typeof window === "undefined" || !("IntersectionObserver" in window),
+  );
+  useEffect(() => {
+    if (shown) return;
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setShown(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref, shown]);
+  return { shown };
+}
+
 export function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
+  // The count is the point of the number, so it has to happen while the
+  // visitor is looking at it — on mount it would finish two screens above.
+  const { shown } = useCountVisible(ref);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       el.textContent = to.toLocaleString() + suffix;
+      return;
+    }
+    if (!shown) {
+      el.textContent = "0" + suffix;
       return;
     }
     const t0 = performance.now();
@@ -21,7 +51,7 @@ export function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
       if (p < 1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
-  }, [to, suffix]);
+  }, [to, suffix, shown]);
   return <span ref={ref}>0{suffix}</span>;
 }
 
