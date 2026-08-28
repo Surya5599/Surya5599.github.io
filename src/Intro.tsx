@@ -571,6 +571,7 @@ export function Intro({ go, onEnd }: { go: (v: Dest) => void; onEnd: (atEnd: boo
                     <div
                       key={b.label}
                       aria-hidden={ph.opacity < 0.5}
+                      inert={ph.opacity <= 0.6}
                       className="absolute inset-x-0 top-0"
                       style={{
                         opacity: ph.opacity,
@@ -601,6 +602,7 @@ export function Intro({ go, onEnd }: { go: (v: Dest) => void; onEnd: (atEnd: boo
                   <div
                     key={b.label}
                     aria-hidden={ph.opacity < 0.5}
+                    inert={ph.opacity <= 0.6}
                     className="absolute inset-x-0 top-0"
                     style={{
                       opacity: ph.opacity,
@@ -641,12 +643,6 @@ export function Intro({ go, onEnd }: { go: (v: Dest) => void; onEnd: (atEnd: boo
             ))}
           </div>
           <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-faded">keep scrolling</span>
-          <button
-            onClick={() => go("overview")}
-            className="cursor-pointer rounded-full border-2 border-ink bg-linen/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-faded backdrop-blur-sm transition-colors hover:text-ink"
-          >
-            skip to the dashboard
-          </button>
         </div>
       </div>
       </div>
