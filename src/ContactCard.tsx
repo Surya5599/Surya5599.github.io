@@ -3,14 +3,13 @@ import { profile } from "./data/profile";
 import { LinkedinIcon } from "./icons";
 
 // This site is deployed to GitHub Pages, which has no server to accept a POST,
-// so out of the box the form composes the message and hands it to the visitor's
-// mail client. Nothing is ever silently swallowed, which is the worst thing a
-// contact form can do.
-//
-// To make submissions arrive without a mail client, put a form endpoint here
-// (Formspree, Web3Forms, Basin — any of them will do, all have a free tier) and
-// the same form POSTs to it instead. That is the only change needed.
-const FORM_ENDPOINT = "";
+// so submissions go to Web3Forms, which relays them to my inbox. The access key
+// is public by design — it only ever permits delivery to the address it was
+// issued for. If the relay is down or the request is blocked, the form falls
+// back to composing the message in the visitor's mail client: nothing is ever
+// silently swallowed, which is the worst thing a contact form can do.
+const FORM_ENDPOINT = "https://api.web3forms.com/submit";
+const ACCESS_KEY = "5a1eef11-d95b-44e5-af3e-4461a4dcf92e";
 
 type Status = { kind: "idle" | "sending" | "sent" | "handed-off" | "error"; detail?: string };
 
@@ -19,6 +18,8 @@ export function ContactCard({ compact = false }: { compact?: boolean }) {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [copied, setCopied] = useState(false);
+  // honeypot: hidden from people, irresistible to scripts that fill every field
+  const [hp, setHp] = useState(false);
 
   const valid = /^[^\s@]+@[^\s@.]+\.[^\s@]{2,}$/.test(from.trim()) && message.trim().length > 2;
 
@@ -30,6 +31,13 @@ export function ContactCard({ compact = false }: { compact?: boolean }) {
     } catch {
       setStatus({ kind: "error", detail: "Couldn't reach the clipboard — the address is above." });
     }
+  };
+
+  const handOff = () => {
+    const subject = encodeURIComponent("Hello from your site");
+    const body = encodeURIComponent(`${message.trim()}\n\n— reply to: ${from.trim()}`);
+    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`;
+    setStatus({ kind: "handed-off" });
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -45,22 +53,30 @@ export function ContactCard({ compact = false }: { compact?: boolean }) {
         const res = await fetch(FORM_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({ email: from.trim(), message: message.trim(), source: "surya-singh.com" }),
+          body: JSON.stringify({
+            access_key: ACCESS_KEY,
+            subject: `${from.trim()} wrote from your site`,
+            from_name: "surya-singh.com",
+            email: from.trim(),
+            message: message.trim(),
+            botcheck: hp,
+          }),
         });
-        if (!res.ok) throw new Error(String(res.status));
+        // Web3Forms answers 200 with { success: false } for a rejected key or a
+        // caught bot, so the body decides, not the status alone.
+        const out = await res.json().catch(() => null);
+        if (!res.ok || !out?.success) throw new Error(String(res.status));
         setStatus({ kind: "sent" });
         setMessage("");
         return;
       } catch {
-        setStatus({ kind: "error", detail: "That didn't go through. The address above always works." });
+        // Hand the visitor their mail client rather than lose what they wrote.
+        handOff();
         return;
       }
     }
 
-    const subject = encodeURIComponent("Hello from your site");
-    const body = encodeURIComponent(`${message.trim()}\n\n— reply to: ${from.trim()}`);
-    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`;
-    setStatus({ kind: "handed-off" });
+    handOff();
   };
 
   const field =
@@ -92,6 +108,16 @@ export function ContactCard({ compact = false }: { compact?: boolean }) {
       </div>
 
       <form onSubmit={submit} className="mt-3.5 grid gap-2">
+        <input
+          type="checkbox"
+          name="botcheck"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          checked={hp}
+          onChange={(e) => setHp(e.target.checked)}
+          className="hidden"
+        />
         <label className="sr-only" htmlFor="contact-email">
           Your email
         </label>
