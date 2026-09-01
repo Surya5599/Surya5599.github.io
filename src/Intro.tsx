@@ -348,9 +348,6 @@ function Identity({
       >
         Hello, I&apos;m Surya<span className="text-clay-deep">.</span>
       </p>
-      <p className="-mt-2 max-w-[15em] text-[12px] font-semibold italic text-faded sm:max-w-none">
-        ignore the goofy eyes — they follow your cursor
-      </p>
     </div>
   );
 }
