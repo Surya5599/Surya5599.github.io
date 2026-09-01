@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { skills, experience, profile } from "../data/profile";
+import { skills, experience } from "../data/profile";
 import SimModal from "../SimModal";
 import { SIMS } from "../sims";
+import { ContactCard } from "../ContactCard";
 
 // The widget vocabulary SAGE composes dashboards from. The Gemini function
 // and the local fallback both emit these shapes.
@@ -145,19 +146,12 @@ export function WidgetGrid({ widgets }: { widgets: Widget[] }) {
               </Panel>
             );
           case "contact":
+            // the card carries its own hud frame and the working form, so it
+            // stands in for a Panel here rather than sitting inside one
             return (
-              <Panel key={i} delay={d}>
-                <Title>reach surya</Title>
-                <p className="mt-2 font-mono text-sm">
-                  <a className="text-clay-deep underline decoration-2 underline-offset-2" href={`mailto:${profile.email}`}>{profile.email}</a>
-                </p>
-                <p className="mt-1 font-mono text-sm">
-                  <a className="text-clay-deep underline decoration-2 underline-offset-2" href={profile.github} target="_blank" rel="noreferrer">
-                    {profile.github.replace("https://", "")}
-                  </a>
-                </p>
-                <p className="mt-1 text-xs text-faded">{profile.location}</p>
-              </Panel>
+              <div key={i} className="flyin" style={{ animationDelay: `${d}ms` }}>
+                <ContactCard compact />
+              </div>
             );
           default:
             return null;

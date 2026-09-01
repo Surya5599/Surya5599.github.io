@@ -9,6 +9,7 @@ import { openResume } from "./resume";
 import { Card, Chip, Reveal } from "./ui";
 import { Intro } from "./Intro";
 import { Avatar } from "./Avatar";
+import { ContactCard } from "./ContactCard";
 import { GithubIcon, LinkedinIcon } from "./icons";
 
 type View = "home" | "overview" | "experience" | "projects" | "skills" | "contact";
@@ -533,6 +534,7 @@ function Contact() {
           <li>3 — Email him. He responds fast.</li>
         </ul>
       </Card>
+      <ContactCard />
     </div>
   );
 }
