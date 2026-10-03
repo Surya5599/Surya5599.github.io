@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { seo } from "./seo";
 
 // In production Netlify serves /api/* from netlify/functions. This plugin
 // serves the same handler under plain `npm run dev`, so no Netlify CLI is
@@ -40,6 +41,6 @@ function localApi(env: Record<string, string>): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
-    plugins: [react(), tailwindcss(), localApi(env)],
+    plugins: [react(), tailwindcss(), localApi(env), seo()],
   };
 });
